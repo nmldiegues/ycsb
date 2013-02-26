@@ -1,20 +1,20 @@
 #!/bin/bash
 
-loader=node20
-slave="node20 node21 node22 node23 node24 node25 node26 node27 node28 node29 node01 node02 node03 node04 node05 node06 node07 node08 node09 node10"
+loader=node05
+#slave="node20 node21 node22 node23 node24 node25 node26 node27 node28 node29 node01 node02 node03 node04 node05 node06 node07 node08 node09 node10"
 #slave="node20 node21 node22 node23 node24 node25 node26 node27 node28 node29"
-#slave="node20 node21 node22 node23 node24"
-path=/home/peluso/
+slave="node05 node07"
+path=/home/ndiegues/ycsb/
 max=50
 count=0
 
 for i in ${slave}
 do
-echo lunching slave on node $i
+echo launching slave on node $i
 ssh $i ${path}start_slave.sh &
 done
 
-echo lunching loader
+echo launching loader
 ssh ${loader} ${path}start_loader.sh &
 while true
 do
@@ -25,7 +25,7 @@ break
 fi
 sleep 10
 
-ret=`ssh ${loader} "grep END_TRANSACTIONS ${path}YCSB/transactions.dat | wc -l "`
+ret=`ssh ${loader} "grep END_TRANSACTIONS ${path}/target/classes/transactions.dat | wc -l "`
 
 if [ ${ret} -eq 1 ]
 then
