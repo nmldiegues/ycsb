@@ -54,7 +54,7 @@ public class InfinispanClient extends DB {
 	try {
 	    synchronized (syncObject) {
 		if(infinispanManager == null){
-		    infinispanManager = new DefaultCacheManager("infinispan-config.xml");
+		    infinispanManager = new DefaultCacheManager("ispn.xml");
 
 		    String table = "usertable";
 		    globalCache = infinispanManager.getCache(table); 
