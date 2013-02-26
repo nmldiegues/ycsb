@@ -209,6 +209,11 @@ public class InfinispanClient extends DB {
 
 
     }
+    
+    @Override
+    public void markWriteTx() {
+	globalCache.markAsWriteTransaction();
+    }
 
     public int endTransaction(boolean commit){
 

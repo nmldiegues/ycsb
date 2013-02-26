@@ -201,7 +201,7 @@ class ClientThread extends Thread
 				_db.waitLoad();	
 				
 				System.out.println(_threadid+". Starting execution phase...");
-			Thread.sleep(60000);
+			Thread.sleep(30000);
 			}
 			
 			

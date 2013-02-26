@@ -466,10 +466,12 @@ public class CoreWorkload extends Workload
 		}
 		else if (op.compareTo("UPDATE")==0)
 		{
+		    db.markWriteTx();
 			returnValue = doTransactionUpdate(db);
 		}
 		else if (op.compareTo("INSERT")==0)
 		{
+		    db.markWriteTx();
 			returnValue = doTransactionInsert(db);
 		}
 		else if (op.compareTo("SCAN")==0)
@@ -478,6 +480,7 @@ public class CoreWorkload extends Workload
 		}
 		else
 		{
+		    db.markWriteTx();
 			returnValue = doTransactionReadModifyWrite(db);
 		}
 		

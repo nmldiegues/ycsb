@@ -202,4 +202,9 @@ public class DBWrapper extends DB
 		_db.endLoad();
 	
 	}
+
+	@Override
+	public void markWriteTx() {
+	    _db.markWriteTx();
+	}
 }

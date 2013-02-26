@@ -140,6 +140,8 @@ public abstract class DB
     public abstract int delete(String table, String key);
 
     public abstract int beginTransaction();
+    
+    public abstract void markWriteTx();
 
     public abstract int endTransaction(boolean commit);
 

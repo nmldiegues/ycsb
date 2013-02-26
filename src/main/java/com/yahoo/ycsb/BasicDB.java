@@ -254,6 +254,12 @@ public class BasicDB extends DB
 	public  void endLoad(){}
 
 
+	@Override
+	public void markWriteTx() {
+	    
+	}
+
+
 	/**
 	 * Short test of BasicDB
 	 */
