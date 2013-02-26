@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<!-- The Log4j Configuration -->
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+   <!-- The list of appenders -->
+   <!-- The rolling file appender -->
+   <appender name="MainLog" class="org.apache.log4j.RollingFileAppender">
+      <param name="File" value="simulator.log"/>
+      <param name="Append" value="false"/>
+      <param name="Threshold" value="TRACE"/>
+      <param name="MaxFileSize" value="100MB"/>
+      <param name="MaxBackupIndex" value="3"/>
+      <layout class="org.apache.log4j.PatternLayout">
+         <!-- The default pattern: Date Priority [Category] Message\n -->
+         <param name="ConversionPattern" value="%d [%t] %-5p [%c] %m%n"/>
+         <!--param name="ConversionPattern" valye="%p %t %c - %m%n"/-->
+      </layout>
+   </appender>
+   
+   <appender name="WorkloadLog" class="org.apache.log4j.RollingFileAppender">
+      <param name="File" value="workload.log"/>
+      <param name="Append" value="false"/>
+      <param name="Threshold" value="TRACE"/>
+      <param name="MaxFileSize" value="100MB"/>
+      <param name="MaxBackupIndex" value="3"/>
+      <layout class="org.apache.log4j.PatternLayout">
+         <!-- The default pattern: Date Priority [Category] Message\n -->
+         <param name="ConversionPattern" value="%d [%t] %-5p [%c] %m%n"/>
+         <!--param name="ConversionPattern" valye="%p %t %c - %m%n"/-->
+      </layout>
+   </appender>
+
+   <!-- The console appender -->
+   <appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
+      <param name="Threshold" value="TRACE"/>
+      <layout class="org.apache.log4j.PatternLayout">
+         <param name="ConversionPattern" value="%d{ABSOLUTE} %-5p [%c{1}] %m%n"/>
+      </layout>
+   </appender>
+
+    
+   <category name="org.infinispan">
+      <priority value="FATAL"/>
+	  <appender-ref ref="MainLog"/>
+   </category>
+   
+      
+
+   <!-- Here goes the root -->
+   <!--
+   <root>
+      <priority value="ERROR"/>
+      <appender-ref ref="CONSOLE"/>
+      <appender-ref ref="MainLog"/>
+   </root>
+   -->
+
+</log4j:configuration>
