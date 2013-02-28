@@ -760,7 +760,7 @@ public class Client
 		System.err.println("Starting test.");
 
 		int opcount;
-		int mulreadcount;
+		int mulreadcount = 20;
 		if (dotransactions)
 		{
 			opcount=Integer.parseInt(props.getProperty(OPERATION_COUNT_PROPERTY,"0"));
