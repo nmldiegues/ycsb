@@ -22,7 +22,7 @@
                 concurrencyLevel="32"
                 writeSkewCheck="false"
                 useLockStriping="false"
-                lockAcquisitionTimeout="500"/>
+                lockAcquisitionTimeout="100000"/>
         <transaction
                 transactionManagerLookupClass="org.infinispan.transaction.lookup.GenericTransactionManagerLookup"
                 useEagerLocking="false"
@@ -47,6 +47,7 @@
             <hash
                     numVirtualNodes="100"
                     numOwners="1"
+                    class="com.yahoo.ycsb.db.CustomHashing"
                     />
             <l1
                     enabled="false"
