@@ -19,6 +19,7 @@ package com.yahoo.ycsb.workloads;
 
 import java.util.Properties;
 import com.yahoo.ycsb.*;
+import com.yahoo.ycsb.db.MagicKey;
 import com.yahoo.ycsb.generator.CounterGenerator;
 import com.yahoo.ycsb.generator.DiscreteGenerator;
 import com.yahoo.ycsb.generator.Generator;
@@ -302,6 +303,7 @@ public class CoreWorkload extends Workload
 	 */
 	public void init(Properties p) throws WorkloadException
 	{
+	    
 		table = p.getProperty(TABLENAME_PROPERTY,TABLENAME_PROPERTY_DEFAULT);
 		
 		fieldcount=Integer.parseInt(p.getProperty(FIELD_COUNT_PROPERTY,FIELD_COUNT_PROPERTY_DEFAULT));
@@ -519,9 +521,22 @@ public class CoreWorkload extends Workload
 			fields.add(fieldname);
 		}
 
-		ret = db.read(table,keyname,fields,new HashMap<String,ByteIterator>());
+		ret = db.read(new MagicKey(keyname, keynum),fields,new HashMap<String,ByteIterator>());
 		
 		return ret;
+	}
+	
+	public static int MUL_READ_COUNT;
+	
+	public int boundKeyToNode(int keynum) {
+	    int parcel = MagicKey.NUMBER / MagicKey.CLIENTS;
+	    while (keynum < (parcel * Client.NODE_INDEX)) {
+		keynum += parcel;
+	    }
+	    while (keynum >= (parcel * (Client.NODE_INDEX + 1))) {
+		keynum -= parcel;
+	    }
+	    return keynum;
 	}
 	
 	public int doTransactionReadModifyWrite(DB db)
@@ -537,11 +552,19 @@ public class CoreWorkload extends Workload
 		}
 		while (keynum>transactioninsertkeysequence.lastInt());
 		
+		//choose a random key
+		int keyToWrite;
+		do
+		{
+		    keyToWrite=keychooser.nextInt();
+		}
+		while (keyToWrite>transactioninsertkeysequence.lastInt());
+		
 		if (!orderedinserts)
 		{
 			keynum=Utils.hash(keynum);
+			keyToWrite=Utils.hash(keyToWrite);
 		}
-		String keyname="user"+keynum;
 
 		HashSet<String> fields=null;
 
@@ -578,13 +601,17 @@ public class CoreWorkload extends Workload
 		
 		long st=System.currentTimeMillis();
 
-		ret = db.read(table,keyname,fields,new HashMap<String,ByteIterator>());
-		
-		if(ret != DB.OK){
+		for (int k = 0; k < MUL_READ_COUNT; k++) {
+		    int newNum = boundKeyToNode(keynum + k);
+		    ret = db.read(new MagicKey("user"+newNum, newNum),fields,new HashMap<String,ByteIterator>());
+
+		    if(ret != DB.OK){
 			return ret;
+		    }
 		}
 		
-		ret = db.update(table,keyname,values);
+		keyToWrite = boundKeyToNode(keyToWrite);
+		ret = db.update(new MagicKey("user"+keyToWrite, keyToWrite),values);
 		
 		if(ret != DB.OK){
 			return ret;
@@ -672,7 +699,7 @@ public class CoreWorkload extends Workload
 		   values.put(fieldname,data);
 		}
 
-		ret = db.update(table,keyname,values);
+		ret = db.update(new MagicKey(keyname, keynum), values);
 		
 		return ret;
 	}
@@ -695,7 +722,7 @@ public class CoreWorkload extends Workload
 			ByteIterator data = new RandomByteIterator(fieldlengthgenerator.nextInt());
 			values.put(fieldkey,data);
 		}
-		ret = db.insert(table,dbkey,values);
+		ret = db.insert(new MagicKey(dbkey, keynum), values);
 		
 		return ret;
 	}

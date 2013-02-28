@@ -22,6 +22,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
 
+import com.yahoo.ycsb.db.MagicKey;
+
 /**
  * A layer for accessing a database to be benchmarked. Each thread in the client
  * will be given its own instance of whatever DB class is to be used in the test.
@@ -95,6 +97,8 @@ public abstract class DB
      * @return Zero on success, a non-zero error code on error or "not found".
      */
     public abstract int read(String table, String key, Set<String> fields, HashMap<String,ByteIterator> result);
+    
+    public abstract int read(MagicKey key, Set<String> fields, HashMap<String,ByteIterator> result);
 
     /**
      * Perform a range scan for a set of records in the database. Each field/value pair from the result will be stored in a HashMap.
@@ -118,6 +122,8 @@ public abstract class DB
      * @return Zero on success, a non-zero error code on error.  See this class's description for a discussion of error codes.
      */
     public abstract int update(String table, String key, HashMap<String,ByteIterator> values);
+    
+    public abstract int update(MagicKey key, HashMap<String,ByteIterator> values);
 
     /**
      * Insert a record in the database. Any field/value pairs in the specified values HashMap will be written into the record with the specified
@@ -129,6 +135,8 @@ public abstract class DB
      * @return Zero on success, a non-zero error code on error.  See this class's description for a discussion of error codes.
      */
     public abstract int insert(String table, String key, HashMap<String,ByteIterator> values);
+    
+    public abstract int insert(MagicKey key, HashMap<String,ByteIterator> values);
 
     /**
      * Delete a record from the database. 

@@ -22,9 +22,11 @@ import java.io.*;
 import java.text.DecimalFormat;
 import java.util.*;
 
+import com.yahoo.ycsb.db.MagicKey;
 import com.yahoo.ycsb.measurements.Measurements;
 import com.yahoo.ycsb.measurements.exporter.MeasurementsExporter;
 import com.yahoo.ycsb.measurements.exporter.TextMeasurementsExporter;
+import com.yahoo.ycsb.workloads.CoreWorkload;
 
 import org.apache.log4j.xml.DOMConfigurator;
 import javax.xml.parsers.FactoryConfigurationError;
@@ -146,10 +148,12 @@ class ClientThread extends Thread
 	boolean _dotransactions;
 	Workload _workload;
 	int _opcount;
+	int _mulreadcount;
 	double _target;
 
 	int _opsdone;
 	int _threadid;
+	int _nodecount;
 	int _threadcount;
 	Object _workloadstate;
 	Properties _props;
@@ -167,7 +171,7 @@ class ClientThread extends Thread
 	 * @param opcount the number of operations (transactions or inserts) to do
 	 * @param targetperthreadperms target number of operations per thread per ms
 	 */
-	public ClientThread(DB db, boolean dotransactions, Workload workload, int threadid, int threadcount, Properties props, int opcount, double targetperthreadperms)
+	public ClientThread(DB db, boolean dotransactions, Workload workload, int threadid, int nodecount, int threadcount, Properties props, int opcount, double targetperthreadperms, int mulreadcount)
 	{
 		//TODO: consider removing threadcount and threadid
 		_db=db;
@@ -177,8 +181,10 @@ class ClientThread extends Thread
 		_opsdone=0;
 		_target=targetperthreadperms;
 		_threadid=threadid;
+		_nodecount=nodecount;
 		_threadcount=threadcount;
 		_props=props;
+		_mulreadcount = mulreadcount;
 		//System.out.println("Interval = "+interval);
 	}
 
@@ -189,6 +195,7 @@ class ClientThread extends Thread
 
 	public void run()
 	{
+	    CoreWorkload.MUL_READ_COUNT = this._mulreadcount;
 		try
 		{
 			_db.init();
@@ -358,6 +365,8 @@ public class Client
 {
 
 	public static final String OPERATION_COUNT_PROPERTY="operationcount";
+	
+	public static final String MULTIPLE_READ_COUNT_PROPERTY="multiplereadcount";
 
 	public static final String RECORD_COUNT_PROPERTY="recordcount";
 
@@ -464,6 +473,8 @@ public class Client
 		}
 	}
 	
+	public static int NODE_INDEX;
+	
 	@SuppressWarnings("unchecked")
 	public static void main(String[] args)
 	{
@@ -472,6 +483,7 @@ public class Client
 		Properties fileprops=new Properties();
 		boolean dotransactions=true;
 		int threadcount=1;
+		int nodecount=1;
 		int target=0;
 		boolean status=false;
 		String label="";
@@ -506,6 +518,18 @@ public class Client
 				}
 				int tcount=Integer.parseInt(args[argindex]);
 				props.setProperty("threadcount", tcount+"");
+				argindex++;
+			}
+			else if (args[argindex].compareTo("-nodes")==0)
+			{
+				argindex++;
+				if (argindex>=args.length)
+				{
+					usageMessage();
+					System.exit(0);
+				}
+				int nodes=Integer.parseInt(args[argindex]);
+				props.setProperty("nodecount", nodes+"");
 				argindex++;
 			}
 			else if (args[argindex].compareTo("-target")==0)
@@ -652,8 +676,12 @@ public class Client
 
 		//get number of threads, target and db
 		threadcount=Integer.parseInt(props.getProperty("threadcount","1"));
+		nodecount=Integer.parseInt(props.getProperty("nodecount","1"));
 		dbname=props.getProperty("db","com.yahoo.ycsb.BasicDB");
 		target=Integer.parseInt(props.getProperty("target","0"));
+		
+		MagicKey.CLIENTS = nodecount;
+		MagicKey.NUMBER = Integer.parseInt(props.getProperty(Client.RECORD_COUNT_PROPERTY));
 		
 		//compute the target throughput
 		double targetperthreadperms=-1;
@@ -732,11 +760,13 @@ public class Client
 		System.err.println("Starting test.");
 
 		int opcount;
+		int mulreadcount;
 		if (dotransactions)
 		{
 			opcount=Integer.parseInt(props.getProperty(OPERATION_COUNT_PROPERTY,"0"));
+			mulreadcount=Integer.parseInt(props.getProperty(MULTIPLE_READ_COUNT_PROPERTY,"0"));
 			
-			System.out.println("OPCOUNT: "+opcount);
+			System.out.println("OPCOUNT: "+opcount + " MULREADCOUNT: " + mulreadcount);
 		}
 		else
 		{
@@ -765,7 +795,7 @@ public class Client
 				System.exit(0);
 			}
 
-			Thread t=new ClientThread(db,dotransactions,workload,threadid,threadcount,props,opcount/threadcount,targetperthreadperms);
+			Thread t=new ClientThread(db,dotransactions,workload,threadid,nodecount,threadcount,props,opcount/threadcount,targetperthreadperms,mulreadcount);
 
 			threads.add(t);
 			//t.start();

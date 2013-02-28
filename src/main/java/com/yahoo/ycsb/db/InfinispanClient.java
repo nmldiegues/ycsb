@@ -1,5 +1,6 @@
 package com.yahoo.ycsb.db;
 
+import com.yahoo.ycsb.Client;
 import com.yahoo.ycsb.DB;
 import com.yahoo.ycsb.DBException;
 import com.yahoo.ycsb.ByteIterator;
@@ -10,6 +11,7 @@ import org.infinispan.atomic.AtomicMap;
 import org.infinispan.atomic.AtomicMapLookup;
 import org.infinispan.manager.DefaultCacheManager;
 import org.infinispan.manager.EmbeddedCacheManager;
+import org.infinispan.remoting.transport.Transport;
 import org.infinispan.util.logging.Log;
 import org.infinispan.util.logging.LogFactory;
 import javax.transaction.TransactionManager;
@@ -60,6 +62,8 @@ public class InfinispanClient extends DB {
 		    globalCache = infinispanManager.getCache(table); 
 
 		    tm=globalCache.getAdvancedCache().getTransactionManager();
+		    
+		    Client.NODE_INDEX = ((CustomHashing)globalCache.getAdvancedCache().getDistributionManager().getConsistentHash()).getMyId(infinispanManager.getTransport().getAddress());
 		}
 	    }
 
@@ -117,7 +121,30 @@ public class InfinispanClient extends DB {
 	    if (clustered) {
 		row = AtomicMapLookup.getAtomicMap(globalCache, key, false);
 	    } else {
-		Cache<String, Map<String, String>> cache = globalCache;
+		Cache<Object, Map<String, String>> cache = globalCache;
+		row = cache.get(key);
+	    }
+	    if (row != null) {
+		result.clear();
+		if (fields == null || fields.isEmpty()) {
+		    StringByteIterator.putAllAsByteIterators(result, row);
+		} else {
+		    for (String field : fields) result.put(field, new StringByteIterator(row.get(field)));
+		}
+	    }
+	    return OK;
+	} catch (Exception e) {
+	    return ERROR;
+	}
+    }
+
+    public int read(MagicKey key, Set<String> fields, HashMap<String, ByteIterator> result) {
+	try {
+	    Map<String, String> row;
+	    if (clustered) {
+		row = AtomicMapLookup.getAtomicMap(globalCache, key, false);
+	    } else {
+		Cache<Object, Map<String, String>> cache = globalCache;
 		row = cache.get(key);
 	    }
 	    if (row != null) {
@@ -145,7 +172,29 @@ public class InfinispanClient extends DB {
 		AtomicMap<String, String> row = AtomicMapLookup.getAtomicMap(globalCache, key);
 		StringByteIterator.putAllAsStrings(row, values);
 	    } else {
-		Cache<String, Map<String, String>> cache = globalCache;
+		Cache<Object, Map<String, String>> cache = globalCache;
+		Map<String, String> row = cache.get(key);
+		if (row == null) {
+		    row = StringByteIterator.getStringMap(values);
+		    cache.put(key, row);
+		} else {
+		    StringByteIterator.putAllAsStrings(row, values);
+		}
+	    }
+
+	    return OK;
+	} catch (Exception e) {
+	    return ERROR;
+	}
+    }
+    
+    public int update(MagicKey key, HashMap<String, ByteIterator> values) {
+	try {
+	    if (clustered) {
+		AtomicMap<String, String> row = AtomicMapLookup.getAtomicMap(globalCache, key);
+		StringByteIterator.putAllAsStrings(row, values);
+	    } else {
+		Cache<Object, Map<String, String>> cache = globalCache;
 		Map<String, String> row = cache.get(key);
 		if (row == null) {
 		    row = StringByteIterator.getStringMap(values);
@@ -169,7 +218,26 @@ public class InfinispanClient extends DB {
 		StringByteIterator.putAllAsStrings(row, values);
 	    } else {
 		//globalCache.put(key, values);
-		Cache<String, Map<String, String>> cache = globalCache;
+		Cache<Object, Map<String, String>> cache = globalCache;
+		Map<String, String> row = StringByteIterator.getStringMap(values);
+		cache.put(key, row);
+	    }
+
+	    return OK;
+	} catch (Exception e) {
+	    return ERROR;
+	}
+    }
+    
+    public int insert(MagicKey key, HashMap<String, ByteIterator> values) {
+	try {
+	    if (clustered) {
+		AtomicMap<String, String> row = AtomicMapLookup.getAtomicMap(globalCache, key);
+		row.clear();
+		StringByteIterator.putAllAsStrings(row, values);
+	    } else {
+		//globalCache.put(key, values);
+		Cache<Object, Map<String, String>> cache = globalCache;
 		Map<String, String> row = StringByteIterator.getStringMap(values);
 		cache.put(key, row);
 	    }

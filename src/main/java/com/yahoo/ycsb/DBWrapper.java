@@ -22,6 +22,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
 
+import com.yahoo.ycsb.db.MagicKey;
 import com.yahoo.ycsb.measurements.Measurements;
 
 /**
@@ -90,6 +91,16 @@ public class DBWrapper extends DB
 		_measurements.reportReturnCode("READ",res);
 		return res;
 	}
+	
+	@Override
+	public int read(MagicKey key, Set<String> fields, HashMap<String, ByteIterator> result) {
+		long st=System.nanoTime();
+		int res=_db.read(key,fields,result);
+		long en=System.nanoTime();
+		_measurements.measure("READ",(int)((en-st)/1000));
+		_measurements.reportReturnCode("READ",res);
+		return res;
+	}
 
 	/**
 	 * Perform a range scan for a set of records in the database. Each field/value pair from the result will be stored in a HashMap.
@@ -129,6 +140,16 @@ public class DBWrapper extends DB
 		_measurements.reportReturnCode("UPDATE",res);
 		return res;
 	}
+	
+	@Override
+	public int update(MagicKey key, HashMap<String, ByteIterator> values) {
+		long st=System.nanoTime();
+		int res=_db.update(key,values);
+		long en=System.nanoTime();
+		_measurements.measure("UPDATE",(int)((en-st)/1000));
+		_measurements.reportReturnCode("UPDATE",res);
+		return res;
+	}
 
 	/**
 	 * Insert a record in the database. Any field/value pairs in the specified values HashMap will be written into the record with the specified
@@ -143,6 +164,16 @@ public class DBWrapper extends DB
 	{
 		long st=System.nanoTime();
 		int res=_db.insert(table,key,values);
+		long en=System.nanoTime();
+		_measurements.measure("INSERT",(int)((en-st)/1000));
+		_measurements.reportReturnCode("INSERT",res);
+		return res;
+	}
+	
+	@Override
+	public int insert(MagicKey key, HashMap<String, ByteIterator> values) {
+		long st=System.nanoTime();
+		int res=_db.insert(key,values);
 		long en=System.nanoTime();
 		_measurements.measure("INSERT",(int)((en-st)/1000));
 		_measurements.reportReturnCode("INSERT",res);

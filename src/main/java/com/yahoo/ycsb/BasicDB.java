@@ -24,6 +24,8 @@ import java.util.Enumeration;
 import java.util.Random;
 import java.util.Vector;
 
+import com.yahoo.ycsb.db.MagicKey;
+
 
 /**
  * Basic DB that just prints out the requested operations, instead of doing them against a database.
@@ -123,6 +125,11 @@ public class BasicDB extends DB
 		return 0;
 	}
 	
+	@Override
+	public int read(MagicKey key, Set<String> fields, HashMap<String, ByteIterator> result) {
+	    return read("magicKey", key.key + "@node" + key.node, fields, result);
+	}
+	
 	/**
 	 * Perform a range scan for a set of records in the database. Each field/value pair from the result will be stored in a HashMap.
 	 *
@@ -186,6 +193,11 @@ public class BasicDB extends DB
 
 		return 0;
 	}
+	
+	@Override
+	public int update(MagicKey key, HashMap<String, ByteIterator> values) {
+	    return update("magicKey", key.key + "@node" + key.node, values);
+	}
 
 	/**
 	 * Insert a record in the database. Any field/value pairs in the specified values HashMap will be written into the record with the specified
@@ -215,6 +227,11 @@ public class BasicDB extends DB
 		}
 
 		return 0;
+	}
+	
+	@Override
+	public int insert(MagicKey key, HashMap<String, ByteIterator> values) {
+	    return insert("magicKey", key.key + "@node" + key.node, values);
 	}
 
 
