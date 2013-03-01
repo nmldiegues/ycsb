@@ -31,7 +31,6 @@ public class CustomHashing extends DefaultConsistentHash {
 	    for (int i = 0; i < actualReplCount; i++) {
 	        result.add(addresses[(node + i) % addresses.length]);
 	    }
-	    System.out.println(((MagicKey)key).key + " -> " + node);
 	    return result;
 	} else {
 	    return super.locate(key, replCount); 
@@ -45,7 +44,6 @@ public class CustomHashing extends DefaultConsistentHash {
 	    int node = ((MagicKey)key).node;
         for (int i = 0; i < actualReplCount; i++) {
             if (target.equals(addresses[(node + i) % addresses.length])) {
-                System.out.println(((MagicKey)key).key + " -> " + ((node + i) % addresses.length));
                 return true;
             }
         }

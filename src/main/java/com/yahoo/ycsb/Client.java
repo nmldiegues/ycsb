@@ -222,6 +222,7 @@ class ClientThread extends Thread
 			    for (int i = 0; i < MagicKey.NUMBER; i++) {
 			        _workload.doInsert(_db,_workloadstate);
 			    }
+	             _db.endLoad();
 			} 
 			_db.waitLoad();
 				
@@ -294,26 +295,6 @@ class ClientThread extends Thread
 			System.exit(0);
 		}
 
-		try
-		{
-			
-			if(!_dotransactions){
-			
-				_db.endLoad();
-				
-				_db.cleanup();
-				
-				
-			}	
-		}
-		catch (DBException e)
-		{
-			e.printStackTrace();
-			e.printStackTrace(System.out);
-			return;
-		}
-				
-		
 
 	}
 }
