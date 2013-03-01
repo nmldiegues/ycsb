@@ -151,6 +151,7 @@ class ClientThread extends Thread
 
 	DB _db;
 	boolean _dotransactions;
+	boolean _doload;
 	Workload _workload;
 	int _opcount;
 	int _mulreadcount;
@@ -177,11 +178,12 @@ class ClientThread extends Thread
 	 * @param opcount the number of operations (transactions or inserts) to do
 	 * @param targetperthreadperms target number of operations per thread per ms
 	 */
-	public ClientThread(DB db, boolean dotransactions, Workload workload, int threadid, int nodecount, int threadcount, Properties props, int opcount, double targetperthreadperms, int mulreadcount)
+	public ClientThread(DB db, boolean dotransactions, boolean doload, Workload workload, int threadid, int nodecount, int threadcount, Properties props, int opcount, double targetperthreadperms, int mulreadcount)
 	{
 		//TODO: consider removing threadcount and threadid
 		_db=db;
 		_dotransactions=dotransactions;
+		_doload=doload;
 		_workload=workload;
 		_opcount=opcount;
 		_opsdone=0;
@@ -213,15 +215,18 @@ class ClientThread extends Thread
 			_db.init();
 			
 			System.out.println(_threadid+". Waiting: loading phase...");
-			Thread.sleep(15000);
+			Thread.sleep(30000);
 
 			
-			if(_dotransactions){
-				_db.waitLoad();	
+			if(_doload){
+			    for (int i = 0; i < MagicKey.NUMBER; i++) {
+			        _workload.doInsert(_db,_workloadstate);
+			    }
+			} 
+			_db.waitLoad();
 				
 				System.out.println(_threadid+". Starting execution phase...");
-			Thread.sleep(10000);
-			}
+			Thread.sleep(5000);
 			
 			
 			
@@ -267,8 +272,6 @@ class ClientThread extends Thread
 		
 		try
 		{
-			if (_dotransactions)
-			{
 				long st=System.currentTimeMillis();
 
 				while (((_opcount == 0) || (_opsdone < _opcount)) && !_workload.isStopRequested())
@@ -281,18 +284,8 @@ class ClientThread extends Thread
 				
 				System.err.println("Total time: " + (System.currentTimeMillis() - st));
 				Thread.sleep(5000);
-			}
-			else
-			{
-				long st=System.currentTimeMillis();
 
-				while (((_opcount == 0) || (_opsdone < _opcount)) && !_workload.isStopRequested())
-				{
 
-					_workload.doInsert(_db,_workloadstate);
-					_opsdone++;
-				}
-			}
 		}
 		catch (Exception e)
 		{
@@ -449,6 +442,7 @@ public class Client
 		Properties props=new Properties();
 		Properties fileprops=new Properties();
 		boolean dotransactions=true;
+		boolean doLoad=false;
 		int threadcount=1;
 		int nodecount=1;
 		int target=0;
@@ -513,7 +507,7 @@ public class Client
 			}
 			else if (args[argindex].compareTo("-load")==0)
 			{
-				dotransactions=false;
+				doLoad=true;
 				argindex++;
 			}
 			else if (args[argindex].compareTo("-t")==0)
@@ -762,7 +756,7 @@ public class Client
 				System.exit(0);
 			}
 
-			Thread t=new ClientThread(db,dotransactions,workload,threadid,nodecount,threadcount,props,opcount/threadcount,targetperthreadperms,mulreadcount);
+			Thread t=new ClientThread(db,dotransactions,doLoad,workload,threadid,nodecount,threadcount,props,opcount/threadcount,targetperthreadperms,mulreadcount);
 
 			threads.add(t);
 			//t.start();
