@@ -145,7 +145,7 @@ public class InfinispanClient extends DB {
 		row = AtomicMapLookup.getAtomicMap(globalCache, key, false);
 	    } else {
 		Cache<Object, Map<String, String>> cache = globalCache;
-		row = cache.get(key);
+		row = cache.get(key.key);
 	    }
 	    if (row != null) {
 		result.clear();
@@ -198,7 +198,7 @@ public class InfinispanClient extends DB {
 		Map<String, String> row = cache.get(key);
 		if (row == null) {
 		    row = StringByteIterator.getStringMap(values);
-		    cache.put(key, row);
+		    cache.put(key.key, row);
 		} else {
 		    StringByteIterator.putAllAsStrings(row, values);
 		}
@@ -239,7 +239,7 @@ public class InfinispanClient extends DB {
 		//globalCache.put(key, values);
 		Cache<Object, Map<String, String>> cache = globalCache;
 		Map<String, String> row = StringByteIterator.getStringMap(values);
-		cache.put(key, row);
+		cache.put(key.key, row);
 	    }
 
 	    return OK;

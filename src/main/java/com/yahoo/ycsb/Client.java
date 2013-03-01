@@ -66,6 +66,7 @@ class StatusThread extends Thread
 
 		long lasten=st;
 		long lasttotalops=0;
+		long lasttotalfailed=0;
 		
 		boolean alldone;
 
@@ -74,6 +75,7 @@ class StatusThread extends Thread
 			alldone=true;
 
 			int totalops=0;
+			int totalfailed=0;
 
 			//terminate this thread when all the worker threads are done
 			for (Thread t : _threads)
@@ -85,6 +87,7 @@ class StatusThread extends Thread
 
 				ClientThread ct=(ClientThread)t;
 				totalops+=ct.getOpsDone();
+				totalfailed+=ct.getOpsFailed();
 			}
 
 			long en=System.currentTimeMillis();
@@ -93,8 +96,10 @@ class StatusThread extends Thread
 			//double throughput=1000.0*((double)totalops)/((double)interval);
 
 			double curthroughput=1000.0*(((double)(totalops-lasttotalops))/((double)(en-lasten)));
+			double curtfail=1000.0*(((double)(totalfailed-lasttotalfailed))/((double)(en-lasten)));
 			
 			lasttotalops=totalops;
+			lasttotalfailed=totalfailed;
 			lasten=en;
 			
 			DecimalFormat d = new DecimalFormat("#.##");
@@ -105,7 +110,7 @@ class StatusThread extends Thread
 			}
 			else
 			{
-				System.err.println(_label+" "+(interval/1000)+" sec: "+totalops+" operations; "+d.format(curthroughput)+" current ops/sec; "+Measurements.getMeasurements().getSummary());
+				System.err.println(_label+" "+(interval/1000)+" sec: "+totalops+" operations; "+d.format(curthroughput)+" current ops/sec; failed: " + totalfailed + " ops, " + d.format(curtfail)+ " ops/sec; " + Measurements.getMeasurements().getSummary());
 			}
 
 			if (_standardstatus)
@@ -151,6 +156,7 @@ class ClientThread extends Thread
 	int _mulreadcount;
 	double _target;
 
+	int _opsfailed;
 	int _opsdone;
 	int _threadid;
 	int _nodecount;
@@ -179,6 +185,7 @@ class ClientThread extends Thread
 		_workload=workload;
 		_opcount=opcount;
 		_opsdone=0;
+		_opsfailed=0;
 		_target=targetperthreadperms;
 		_threadid=threadid;
 		_nodecount=nodecount;
@@ -188,6 +195,11 @@ class ClientThread extends Thread
 		//System.out.println("Interval = "+interval);
 	}
 
+	public int getOpsFailed()
+	{
+	    return _opsfailed;
+	}
+	
 	public int getOpsDone()
 	{
 		return _opsdone;
@@ -201,14 +213,14 @@ class ClientThread extends Thread
 			_db.init();
 			
 			System.out.println(_threadid+". Waiting: loading phase...");
-			Thread.sleep(60000);
+			Thread.sleep(15000);
 
 			
 			if(_dotransactions){
 				_db.waitLoad();	
 				
 				System.out.println(_threadid+". Starting execution phase...");
-			Thread.sleep(30000);
+			Thread.sleep(10000);
 			}
 			
 			
@@ -259,11 +271,14 @@ class ClientThread extends Thread
 			{
 				long st=System.currentTimeMillis();
 
+				boolean lastSuccessful = true;
 				while (((_opcount == 0) || (_opsdone < _opcount)) && !_workload.isStopRequested())
 				{
 
-					if (!_workload.doTransaction(_db,_workloadstate))
+				    lastSuccessful = _workload.doTransaction(_db,_workloadstate, lastSuccessful);
+					if (!lastSuccessful)
 					{
+					    _opsfailed++;
 						continue;//Sebastiano
 					}
 
@@ -290,6 +305,8 @@ class ClientThread extends Thread
 						}
 					}
 				}
+				
+				System.err.println("Total time: " + (System.currentTimeMillis() - st));
 			}
 			else
 			{

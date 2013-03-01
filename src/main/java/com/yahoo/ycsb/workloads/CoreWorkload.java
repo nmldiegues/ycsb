@@ -422,10 +422,10 @@ public class CoreWorkload extends Workload
 	public boolean doInsert(DB db, Object threadstate)
 	{
 		int keynum=keysequence.nextInt();
-		if (!orderedinserts)
-		{
-			keynum=Utils.hash(keynum);
-		}
+//		if (!orderedinserts)
+//		{
+//			keynum=Utils.hash(keynum);
+//		}
 		String dbkey="user"+keynum;
 		HashMap<String,ByteIterator> values=new HashMap<String,ByteIterator>();
 
@@ -447,9 +447,9 @@ public class CoreWorkload extends Workload
 	 * other, and it will be difficult to reach the target throughput. Ideally, this function would have no side
 	 * effects other than DB operations.
 	 */
-	public boolean doTransaction(DB db, Object threadstate)
+	public boolean doTransaction(DB db, Object threadstate, boolean lastSuccessful)
 	{
-		String op=operationchooser.nextString();
+		String op=operationchooser.nextString(lastSuccessful);
 		
 		int returnValue = DB.OK;
 			
@@ -504,10 +504,10 @@ public class CoreWorkload extends Workload
 		}
 		while (keynum>transactioninsertkeysequence.lastInt());
 		
-		if (!orderedinserts)
-		{
-			keynum=Utils.hash(keynum);
-		}
+//		if (!orderedinserts)
+//		{
+//			keynum=Utils.hash(keynum);
+//		}
 		String keyname="user"+keynum;
 
 		HashSet<String> fields=null;
@@ -560,11 +560,11 @@ public class CoreWorkload extends Workload
 		}
 		while (keyToWrite>transactioninsertkeysequence.lastInt());
 		
-		if (!orderedinserts)
-		{
-			keynum=Utils.hash(keynum);
-			keyToWrite=Utils.hash(keyToWrite);
-		}
+//		if (!orderedinserts)
+//		{
+//			keynum=Utils.hash(keynum);
+//			keyToWrite=Utils.hash(keyToWrite);
+//		}
 
 		HashSet<String> fields=null;
 
@@ -604,7 +604,8 @@ public class CoreWorkload extends Workload
 		for (int k = 0; k < MUL_READ_COUNT; k++) {
 		    int newNum = boundKeyToNode(keynum + k);
 		    ret = db.read(new MagicKey("user"+newNum, newNum),fields,new HashMap<String,ByteIterator>());
-
+		    
+		    
 		    if(ret != DB.OK){
 			return ret;
 		    }
@@ -637,10 +638,10 @@ public class CoreWorkload extends Workload
 		}
 		while (keynum>transactioninsertkeysequence.lastInt());
 
-		if (!orderedinserts)
-		{
-			keynum=Utils.hash(keynum);
-		}
+//		if (!orderedinserts)
+//		{
+//			keynum=Utils.hash(keynum);
+//		}
 		String startkeyname="user"+keynum;
 		
 		//choose a random scan length
@@ -673,10 +674,10 @@ public class CoreWorkload extends Workload
 		}
 		while (keynum>transactioninsertkeysequence.lastInt());
 
-		if (!orderedinserts)
-		{
-			keynum=Utils.hash(keynum);
-		}
+//		if (!orderedinserts)
+//		{
+//			keynum=Utils.hash(keynum);
+//		}
 		String keyname="user"+keynum;
 
 		HashMap<String,ByteIterator> values=new HashMap<String,ByteIterator>();
@@ -709,10 +710,10 @@ public class CoreWorkload extends Workload
 		int ret = DB.OK;
 		//choose the next key
 		int keynum=transactioninsertkeysequence.nextInt();
-		if (!orderedinserts)
-		{
-			keynum=Utils.hash(keynum);
-		}
+//		if (!orderedinserts)
+//		{
+//			keynum=Utils.hash(keynum);
+//		}
 		String dbkey="user"+keynum;
 		
 		HashMap<String,ByteIterator> values=new HashMap<String,ByteIterator>();

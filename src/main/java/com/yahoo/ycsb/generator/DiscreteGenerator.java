@@ -27,6 +27,8 @@ import com.yahoo.ycsb.WorkloadException;
  */
 public class DiscreteGenerator extends Generator
 {
+    private String last;
+    
 	class Pair
 	{
 		public double _weight;
@@ -50,6 +52,14 @@ public class DiscreteGenerator extends Generator
 		_lastvalue=null;
 	}
 
+	public String nextString(boolean lastSuccessful){
+	    if (lastSuccessful) {
+	        return nextString();
+	    } else {
+	        return last;
+	    }
+	}
+	
 	/**
 	 * Generate the next string in the distribution.
 	 */
@@ -68,6 +78,7 @@ public class DiscreteGenerator extends Generator
 		{
 			if (val<p._weight/sum)
 			{
+			    last = p._value;
 				return p._value;
 			}
 
@@ -79,6 +90,7 @@ public class DiscreteGenerator extends Generator
 
 		System.exit(0);
 
+		last = null;
 		return null;
 	}
 
