@@ -18,12 +18,6 @@ public class MagicKey implements Serializable {
 	this.node = (int) Math.floor((double)((num * CLIENTS) / NUMBER));
     }
     
-    public MagicKey(int node, String key, int num) {
-	this.node = node;
-	this.num = num;
-	this.key = key;
-    }
-
     @Override
     public boolean equals (Object o) {
        if (this == o) return true;

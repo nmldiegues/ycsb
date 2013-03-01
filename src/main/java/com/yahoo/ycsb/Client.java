@@ -271,42 +271,16 @@ class ClientThread extends Thread
 			{
 				long st=System.currentTimeMillis();
 
-				boolean lastSuccessful = true;
 				while (((_opcount == 0) || (_opsdone < _opcount)) && !_workload.isStopRequested())
 				{
 
-				    lastSuccessful = _workload.doTransaction(_db,_workloadstate, lastSuccessful);
-					if (!lastSuccessful)
-					{
-					    _opsfailed++;
-						continue;//Sebastiano
-					}
+				    _opsfailed += _workload.doTransaction(_db,_workloadstate);
+				    _opsdone++;
 
-					_opsdone++;
-
-					//throttle the operations
-					if (_target>0)
-					{
-						//this is more accurate than other throttling approaches we have tried,
-						//like sleeping for (1/target throughput)-operation latency,
-						//because it smooths timing inaccuracies (from sleep() taking an int, 
-						//current time in millis) over many operations
-						while (System.currentTimeMillis()-st<((double)_opsdone)/_target)
-						{
-							try
-							{
-								sleep(1);
-							}
-							catch (InterruptedException e)
-							{
-							  // do nothing.
-							}
-
-						}
-					}
 				}
 				
 				System.err.println("Total time: " + (System.currentTimeMillis() - st));
+				Thread.sleep(5000);
 			}
 			else
 			{
@@ -315,32 +289,8 @@ class ClientThread extends Thread
 				while (((_opcount == 0) || (_opsdone < _opcount)) && !_workload.isStopRequested())
 				{
 
-					if (!_workload.doInsert(_db,_workloadstate))
-					{
-						break;
-					}
-
+					_workload.doInsert(_db,_workloadstate);
 					_opsdone++;
-
-					//throttle the operations
-					if (_target>0)
-					{
-						//this is more accurate than other throttling approaches we have tried,
-						//like sleeping for (1/target throughput)-operation latency,
-						//because it smooths timing inaccuracies (from sleep() taking an int, 
-						//current time in millis) over many operations
-						while (System.currentTimeMillis()-st<((double)_opsdone)/_target)
-						{
-							try 
-							{
-								sleep(1);
-							}
-							catch (InterruptedException e)
-							{
-							  // do nothing.
-							}
-						}
-					}
 				}
 			}
 		}

@@ -447,9 +447,9 @@ public class CoreWorkload extends Workload
 	 * other, and it will be difficult to reach the target throughput. Ideally, this function would have no side
 	 * effects other than DB operations.
 	 */
-	public boolean doTransaction(DB db, Object threadstate, boolean lastSuccessful)
+	public int doTransaction(DB db, Object threadstate)
 	{
-		String op=operationchooser.nextString(lastSuccessful);
+		String op=operationchooser.nextString();
 		
 		int returnValue = DB.OK;
 			
@@ -459,7 +459,7 @@ public class CoreWorkload extends Workload
 		
 		if(returnValue != DB.OK){
 		
-			return false;
+			return 1;
 		}
 
 		if (op.compareTo("READ")==0)
@@ -482,14 +482,29 @@ public class CoreWorkload extends Workload
 		}
 		else
 		{
-		    db.markWriteTx();
-			returnValue = doTransactionReadModifyWrite(db);
+		    int keyRead = -1;
+		    int keyWrite = -1;
+		    int restarts = 0;
+		    do {
+			db.markWriteTx();
+			returnValue = doTransactionReadModifyWrite(db, keyRead, keyWrite);
+			committed = db.endTransaction((returnValue == DB.OK));	    
+			if ((returnValue == DB.OK) && (committed == DB.OK)) {
+			    return restarts;
+			}
+			
+			restarts++;
+			keyRead = lastReadKey.get();
+			keyWrite = lastWrittenKey.get();
+			returnValue = db.beginTransaction();
+			if(returnValue != DB.OK){ throw new RuntimeException("should not have happened"); }
+		    } while (true);
 		}
 		
 		committed = db.endTransaction((returnValue == DB.OK));
 		
 		
-		return (returnValue == DB.OK) && (committed == DB.OK);
+		return 0;
 	}
 
 	public int doTransactionRead(DB db)
@@ -529,36 +544,58 @@ public class CoreWorkload extends Workload
 	public static int MUL_READ_COUNT;
 	
 	public int boundKeyToNode(int keynum) {
-	    int parcel = MagicKey.NUMBER / MagicKey.CLIENTS;
-	    while (keynum < (parcel * Client.NODE_INDEX)) {
-		keynum += parcel;
-	    }
-	    while (keynum >= (parcel * (Client.NODE_INDEX + 1))) {
-		keynum -= parcel;
-	    }
+//	    int parcel = MagicKey.NUMBER / MagicKey.CLIENTS;
+//	    while (keynum < (parcel * Client.NODE_INDEX)) {
+//		keynum += parcel;
+//	    }
+//	    while (keynum >= (parcel * (Client.NODE_INDEX + 1))) {
+//		keynum -= parcel;
+//	    }
 	    return keynum;
 	}
 	
-	public int doTransactionReadModifyWrite(DB db)
+	private static final ThreadLocal<Integer> lastReadKey = new ThreadLocal<Integer>() {
+	    protected Integer initialValue() {
+		return -1;
+	    };
+	};
+	
+	private static final ThreadLocal<Integer> lastWrittenKey = new ThreadLocal<Integer>() {
+	    protected Integer initialValue() {
+		return -1;
+	    };
+	};
+	
+	public int doTransactionReadModifyWrite(DB db, int forcedKeyNum, int forcedKeyWrite)
 	{
 		
 		int ret = DB.OK;
 		
 		//choose a random key
 		int keynum;
-		do
-		{
+		if (forcedKeyNum == -1) {
+		    do
+		    {
 			keynum=keychooser.nextInt();
+		    }
+		    while (keynum>transactioninsertkeysequence.lastInt());
+		    lastReadKey.set(keynum);
+		} else {
+		    keynum = forcedKeyNum;
 		}
-		while (keynum>transactioninsertkeysequence.lastInt());
 		
 		//choose a random key
 		int keyToWrite;
-		do
-		{
-		    keyToWrite=keychooser.nextInt();
+		if (forcedKeyWrite == -1) {
+		    do
+		    {
+			keyToWrite=keychooser.nextInt();
+		    }
+		    while (keyToWrite>transactioninsertkeysequence.lastInt());
+		    lastWrittenKey.set(keyToWrite);
+		} else {
+		    keyToWrite = forcedKeyWrite;
 		}
-		while (keyToWrite>transactioninsertkeysequence.lastInt());
 		
 //		if (!orderedinserts)
 //		{

@@ -24,40 +24,43 @@ public class CustomHashing extends DefaultConsistentHash {
 
     @Override
     public List<Address> locate(Object key, int replCount) {
-	if (replCount != 1) {
-	    throw new RuntimeException("Not supported replCount: " + replCount);
-	}
-	
-	List<Address> result = new ArrayList<Address>(1);
-	if (key instanceof MagicKey) {
-	    result.add(addresses[((MagicKey)key).node]);
-	    return result;
-	} else {
-	    result.add(addresses[0]);
-	    return result;
-	}
+	return super.locate(key, replCount);
+//	if (replCount != 1) {
+//	    throw new RuntimeException("Not supported replCount: " + replCount);
+//	}
+//	
+//	List<Address> result = new ArrayList<Address>(1);
+//	if (key instanceof MagicKey) {
+//	    result.add(addresses[((MagicKey)key).node]);
+//	    return result;
+//	} else {
+//	    result.add(addresses[0]);
+//	    return result;
+//	}
     }
     
     @Override
     public boolean isKeyLocalToAddress(Address target, Object key, int replCount) {
-	if (replCount != 1) {
-	    throw new RuntimeException("Not supported replCount: " + replCount);
-	}
-	
-	if (key instanceof MagicKey) {
-	    return target.equals(addresses[((MagicKey)key).node]);
-	} else {
-	    return target.equals(addresses[0]);
-	}
+	return super.isKeyLocalToAddress(target, key, replCount);
+//	if (replCount != 1) {
+//	    throw new RuntimeException("Not supported replCount: " + replCount);
+//	}
+//	
+//	if (key instanceof MagicKey) {
+//	    return target.equals(addresses[((MagicKey)key).node]);
+//	} else {
+//	    return target.equals(addresses[0]);
+//	}
     }
 
     @Override
     public Address primaryLocation(Object key) {
-	if (key instanceof MagicKey) {
-	    return addresses[((MagicKey)key).node];
-	} else {
-	    return addresses[0];
-	}
+	return super.primaryLocation(key);
+//	if (key instanceof MagicKey) {
+//	    return addresses[((MagicKey)key).node];
+//	} else {
+//	    return addresses[0];
+//	}
     }
 
     public int getMyId(Address addr) {
