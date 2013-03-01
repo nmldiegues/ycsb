@@ -544,13 +544,13 @@ public class CoreWorkload extends Workload
 	public static int MUL_READ_COUNT;
 	
 	public int boundKeyToNode(int keynum) {
-//	    int parcel = MagicKey.NUMBER / MagicKey.CLIENTS;
-//	    while (keynum < (parcel * Client.NODE_INDEX)) {
-//		keynum += parcel;
-//	    }
-//	    while (keynum >= (parcel * (Client.NODE_INDEX + 1))) {
-//		keynum -= parcel;
-//	    }
+	    int parcel = MagicKey.NUMBER / MagicKey.CLIENTS;
+	    while (keynum < (parcel * Client.NODE_INDEX)) {
+	        keynum += parcel;
+	    }
+	    while (keynum >= (parcel * (Client.NODE_INDEX + 1))) {
+	        keynum -= parcel;
+	    }
 	    return keynum;
 	}
 	
