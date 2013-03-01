@@ -24,43 +24,44 @@ public class CustomHashing extends DefaultConsistentHash {
 
     @Override
     public List<Address> locate(Object key, int replCount) {
-	return super.locate(key, replCount);
-//	if (replCount != 1) {
-//	    throw new RuntimeException("Not supported replCount: " + replCount);
-//	}
-//	
-//	List<Address> result = new ArrayList<Address>(1);
-//	if (key instanceof MagicKey) {
-//	    result.add(addresses[((MagicKey)key).node]);
-//	    return result;
-//	} else {
-//	    result.add(addresses[0]);
-//	    return result;
-//	}
+        final int actualReplCount = Math.min(replCount, caches.size());
+	if (key instanceof MagicKey) {
+	    List<Address> result = new ArrayList<Address>(actualReplCount);
+	    int node = ((MagicKey)key).node;
+	    for (int i = 0; i < actualReplCount; i++) {
+	        result.add(addresses[(node + i) % addresses.length]);
+	    }
+	    System.out.println(((MagicKey)key).key + " -> " + node);
+	    return result;
+	} else {
+	    return super.locate(key, replCount); 
+	}
     }
     
     @Override
     public boolean isKeyLocalToAddress(Address target, Object key, int replCount) {
-	return super.isKeyLocalToAddress(target, key, replCount);
-//	if (replCount != 1) {
-//	    throw new RuntimeException("Not supported replCount: " + replCount);
-//	}
-//	
-//	if (key instanceof MagicKey) {
-//	    return target.equals(addresses[((MagicKey)key).node]);
-//	} else {
-//	    return target.equals(addresses[0]);
-//	}
+        final int actualReplCount = Math.min(replCount, caches.size());
+	if (key instanceof MagicKey) {
+	    int node = ((MagicKey)key).node;
+        for (int i = 0; i < actualReplCount; i++) {
+            if (target.equals(addresses[(node + i) % addresses.length])) {
+                System.out.println(((MagicKey)key).key + " -> " + ((node + i) % addresses.length));
+                return true;
+            }
+        }
+	    return false;
+	} else {
+	    return super.isKeyLocalToAddress(target, key, replCount);
+	}
     }
 
     @Override
     public Address primaryLocation(Object key) {
-	return super.primaryLocation(key);
-//	if (key instanceof MagicKey) {
-//	    return addresses[((MagicKey)key).node];
-//	} else {
-//	    return addresses[0];
-//	}
+	if (key instanceof MagicKey) {
+	    return addresses[((MagicKey)key).node];
+	} else {
+	    return super.primaryLocation(key);
+	}
     }
 
     public int getMyId(Address addr) {

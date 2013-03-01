@@ -596,7 +596,7 @@ public class CoreWorkload extends Workload
 		} else {
 		    keyToWrite = forcedKeyWrite;
 		}
-		
+
 //		if (!orderedinserts)
 //		{
 //			keynum=Utils.hash(keynum);
