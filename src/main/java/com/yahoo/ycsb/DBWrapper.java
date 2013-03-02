@@ -238,4 +238,9 @@ public class DBWrapper extends DB
 	public void markWriteTx() {
 	    _db.markWriteTx();
 	}
+	
+	@Override
+	public void finish() {
+	    _db.finish();
+	}
 }

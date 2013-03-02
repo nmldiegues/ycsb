@@ -97,7 +97,7 @@ public class InfinispanClient extends DB {
     public void waitLoad(){
 	Object waitValue = null;
 
-	while(waitValue == null || ((Integer)waitValue) != 1){
+	while(waitValue == null || ((Integer)waitValue) < 1){
 	    try{ 
 		waitValue = globalCache.get("Sebastiano_key");
 	    }
@@ -114,7 +114,7 @@ public class InfinispanClient extends DB {
 	boolean loaded = false;
 	while(!loaded){
 	    try{ 
-		globalCache.put("Sebastiano_key", new Integer(1));
+		globalCache.put("Sebastiano_key", infinispanManager.getTransport().getMembers().size());
 		loaded = true;
 	    }
 	    catch(Exception e){
@@ -316,5 +316,34 @@ public class InfinispanClient extends DB {
 	}
 
 
+    }
+    
+    @Override
+    public void finish() {
+        Object waitValue = null;
+        
+        
+        while (true) {
+        try  {
+        tm.begin();
+        Integer val = (Integer) globalCache.get("Sebastiano_key");
+        globalCache.put("Sebastiano_key", val - 1);
+        tm.commit();
+        break;
+        } catch (Exception e) {
+            
+        }
+        }
+
+        while(waitValue == null || ((Integer)waitValue) != 0){
+            try{ 
+            waitValue = globalCache.get("Sebastiano_key");
+            }
+            catch(Exception e){
+
+            waitValue = null;
+            }
+
+        }
     }
 }

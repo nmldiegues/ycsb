@@ -307,4 +307,9 @@ public class BasicDB extends DB
 
 		bdb.delete("table","key");
 	}*/
+	
+	@Override
+	public void finish() {
+	    
+	}
 }

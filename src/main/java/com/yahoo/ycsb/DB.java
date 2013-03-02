@@ -156,4 +156,6 @@ public abstract class DB
     public abstract void waitLoad();
 
     public abstract void endLoad();
+    
+    public abstract void finish();
 }
