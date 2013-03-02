@@ -1,9 +1,9 @@
 #!/bin/bash
 
-loader=node05
+loader=node01
 #slave="node20 node21 node22 node23 node24 node25 node26 node27 node28 node29 node01 node02 node03 node04 node05 node06 node07 node08 node09 node10"
 #slave="node20 node21 node22 node23 node24 node25 node26 node27 node28 node29"
-slave="node07"
+slave="node02 node03 node04"
 path=/home/ndiegues/ycsb/
 max=50
 count=0
@@ -13,8 +13,6 @@ do
 echo launching slave on node $i
 ssh $i ${path}start_slave.sh &
 done
-
-sleep 5
 
 echo launching loader
 ssh ${loader} ${path}start_loader.sh &
@@ -27,7 +25,7 @@ break
 fi
 sleep 10
 
-ret=`ssh ${loader} "grep END_TRANSACTIONS ${path}/target/classes/transactions.dat | wc -l "`
+ret=`ssh ${loader} "grep END_TRANSACTIONS ${path}target/classes/transactions.dat | wc -l "`
 
 if [ ${ret} -eq 1 ]
 then
