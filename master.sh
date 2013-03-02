@@ -3,7 +3,7 @@
 loader=node01
 #slave="node20 node21 node22 node23 node24 node25 node26 node27 node28 node29 node01 node02 node03 node04 node05 node06 node07 node08 node09 node10"
 #slave="node20 node21 node22 node23 node24 node25 node26 node27 node28 node29"
-slave="node02 node03 node04"
+slave="node02"
 path=/home/ndiegues/ycsb/
 max=50
 count=0
