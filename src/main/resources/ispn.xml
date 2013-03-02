@@ -12,7 +12,7 @@
             <properties>
                 <property
                         name="configurationFile"
-                        value="jgroups/jgroups-udp.xml" />
+                        value="jgroups/jgroups.xml" />
             </properties>
         </transport>
     </global>
@@ -22,7 +22,7 @@
                 concurrencyLevel="32"
                 writeSkewCheck="false"
                 useLockStriping="false"
-                lockAcquisitionTimeout="100000"/>
+                lockAcquisitionTimeout="10000"/>
         <transaction
                 transactionManagerLookupClass="org.infinispan.transaction.lookup.GenericTransactionManagerLookup"
                 useEagerLocking="false"
@@ -30,12 +30,12 @@
                 syncRollbackPhase="false"
                 cacheStopTimeout="30000"
                 useSynchronization="false"
-                syncCommitPhase="true"
+                syncCommitPhase="false"
                 lockingMode="OPTIMISTIC"
                 eagerLockSingleNode="false"
                 use1PcForAutoCommitTransactions="false"
                 autoCommit="true"
-                ssiValidation="true"
+		ssiValidation="true"
                 />
         <jmxStatistics
                 enabled="true"/>
@@ -45,25 +45,20 @@
             <sync
                     replTimeout="15000" />
             <hash
-                    numVirtualNodes="100"
+                    numVirtualNodes="1"
                     numOwners="1"
-                    class="com.yahoo.ycsb.db.CustomHashing"
-                    />
+                    rehashEnabled="false"
+                    rehashRpcTimeout="600000"
+class="com.yahoo.ycsb.db.CustomHashing"
+                    rehashWait="60000" />
             <l1
                     enabled="false"
                     onRehash="false"
                     lifespan="600000"
-                    invalidationThreshold="-1"
-                    cleanupTaskFrequency="600000" />
+                    invalidationThreshold="0" />
         </clustering>
-        <garbageCollector
-                enabled="false"
-                transactionThreshold="1000"
-                versionGCMaxIdle="1"
-                viewGCBackOff="120"
-                l1GCInterval="60"/>
         <customInterceptors>
-            <!--  <interceptor
+            <!-- <interceptor
                     after="org.infinispan.interceptors.InvocationContextInterceptor"
                     class="org.infinispan.distribution.wrappers.DistCustomStatsInterceptor"/>
             <interceptor

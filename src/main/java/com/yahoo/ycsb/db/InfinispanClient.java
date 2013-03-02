@@ -71,7 +71,7 @@ public class InfinispanClient extends DB {
 		    Transport transport = infinispanManager.getTransport();
 		    while (transport.getMembers().size() < nodes) { 
 		        try {
-                Thread.sleep(1);
+                Thread.sleep(5000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } }
