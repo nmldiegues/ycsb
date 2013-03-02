@@ -215,7 +215,7 @@ class ClientThread extends Thread
 	    CoreWorkload.MUL_READ_COUNT = this._mulreadcount;
 		try
 		{
-			_db.init();
+			_db.init(_nodecount);
 			
 			System.out.println(_threadid+". Waiting: loading phase...");
 			Thread.sleep(30000);

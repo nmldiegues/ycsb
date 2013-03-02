@@ -70,7 +70,7 @@ public class BasicDB extends DB
 	 * Called once per DB instance; there is one DB instance per client thread.
 	 */
 	@SuppressWarnings("unchecked")
-	public void init()
+	public void init(int nodes)
 	{
 		verbose=Boolean.parseBoolean(getProperties().getProperty(VERBOSE, VERBOSE_DEFAULT));
 		todelay=Integer.parseInt(getProperties().getProperty(SIMULATE_DELAY, SIMULATE_DELAY_DEFAULT));

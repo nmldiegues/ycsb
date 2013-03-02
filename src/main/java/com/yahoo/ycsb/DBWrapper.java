@@ -59,9 +59,9 @@ public class DBWrapper extends DB
 	 * Initialize any state for this DB.
 	 * Called once per DB instance; there is one DB instance per client thread.
 	 */
-	public void init() throws DBException
+	public void init(int nodes) throws DBException
 	{
-		_db.init();
+		_db.init(nodes);
 	}
 
 	/**

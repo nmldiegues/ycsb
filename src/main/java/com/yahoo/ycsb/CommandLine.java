@@ -207,7 +207,7 @@ public class CommandLine
 	 db.setProperties(props);
 	 try
 	 {
-	    db.init();
+	    db.init(0);
 	 }
 	 catch (DBException e)
 	 {

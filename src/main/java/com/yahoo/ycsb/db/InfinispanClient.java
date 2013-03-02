@@ -52,7 +52,7 @@ public class InfinispanClient extends DB {
 	System.out.println("CLUSTERED: "+clustered);
     }
 
-    public void init() throws DBException {
+    public void init(int nodes) throws DBException {
 	try {
 	    synchronized (syncObject) {
 		if(infinispanManager == null){
@@ -68,6 +68,13 @@ public class InfinispanClient extends DB {
 		    MagicKey.HASH = ((CustomHashing)globalCache.getAdvancedCache().getDistributionManager().getConsistentHash());
 		    MagicKey.OWNERS = globalCache.getAdvancedCache().getConfiguration().getNumOwners();
 		    
+		    Transport transport = infinispanManager.getTransport();
+		    while (transport.getMembers().size() < nodes) { 
+		        try {
+                Thread.sleep(1);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } }
 		}
 	    }
 
