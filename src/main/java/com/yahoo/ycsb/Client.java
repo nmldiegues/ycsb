@@ -291,9 +291,9 @@ class ClientThread extends Thread
 
 				}
 				
-				System.err.println("Total time: " + (System.currentTimeMillis() - st));
+				System.out.println("Total time: " + (System.currentTimeMillis() - st));
 				Thread.sleep(5000);
-
+				_db.finish();
 
 		}
 		catch (Exception e)

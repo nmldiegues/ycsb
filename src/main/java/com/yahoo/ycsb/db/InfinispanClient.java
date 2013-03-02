@@ -14,6 +14,8 @@ import org.infinispan.manager.EmbeddedCacheManager;
 import org.infinispan.remoting.transport.Transport;
 import org.infinispan.util.logging.Log;
 import org.infinispan.util.logging.LogFactory;
+
+import javax.transaction.SystemException;
 import javax.transaction.TransactionManager;
 
 import java.io.IOException;
@@ -318,32 +320,46 @@ public class InfinispanClient extends DB {
 
     }
     
+    static volatile boolean finished = false;
+    static final Object finishLock = new Object();
+    
     @Override
     public void finish() {
-        Object waitValue = null;
+        synchronized (finishLock) {
+        if (finished) {
+            return;
+        }
+        Integer waitValue = null;
         
-        
+        Integer val = -1;
         while (true) {
         try  {
         tm.begin();
-        Integer val = (Integer) globalCache.get("Sebastiano_key");
+        val = (Integer) globalCache.get("Sebastiano_key");
         globalCache.put("Sebastiano_key", val - 1);
         tm.commit();
         break;
         } catch (Exception e) {
-            
+        try {
+            tm.rollback();
+        } catch (IllegalStateException e1) {
+        } catch (SecurityException e1) {
+        } catch (SystemException e1) {
+        }    
         }
         }
 
-        while(waitValue == null || ((Integer)waitValue) != 0){
+        while(waitValue == null || waitValue > 0){
             try{ 
-            waitValue = globalCache.get("Sebastiano_key");
+            waitValue = (Integer) globalCache.get("Sebastiano_key");
             }
             catch(Exception e){
 
             waitValue = null;
             }
-
+            try {  Thread.sleep(1); } catch (InterruptedException e) {}
+        }
+        finished = true;
         }
     }
 }
