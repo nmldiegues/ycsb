@@ -573,29 +573,29 @@ public class CoreWorkload extends Workload
 		
 		//choose a random key
 		int keynum;
-		if (forcedKeyNum == -1) {
+//		if (forcedKeyNum == -1) {
 		    do
 		    {
 			keynum=keychooser.nextInt();
 		    }
 		    while (keynum>transactioninsertkeysequence.lastInt());
 		    lastReadKey.set(keynum);
-		} else {
-		    keynum = forcedKeyNum;
-		}
+//		} else {
+//		    keynum = forcedKeyNum;
+//		}
 		
 		//choose a random key
 		int keyToWrite;
-		if (forcedKeyWrite == -1) {
+//		if (forcedKeyWrite == -1) {
 		    do
 		    {
 			keyToWrite=keychooser.nextInt();
 		    }
 		    while (keyToWrite>transactioninsertkeysequence.lastInt());
 		    lastWrittenKey.set(keyToWrite);
-		} else {
-		    keyToWrite = forcedKeyWrite;
-		}
+//		} else {
+//		    keyToWrite = forcedKeyWrite;
+//		}
 
 //		if (!orderedinserts)
 //		{
