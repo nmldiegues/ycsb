@@ -4,6 +4,6 @@ cp="/home/ndiegues/.m2/repository/org/infinispan/infinispan-core/5.2.0-cloudtm-S
 
 
 cd ~/ycsb/target/classes;
-java -Xmx7168M -Xms7168M -Djava.net.preferIPv4Stack=true -Dbind.address=`hostname` -cp $cp  com.yahoo.ycsb.Client -t -db com.yahoo.ycsb.db.InfinispanClient -P workloads/workloadg -p multiplereadcount=50 -p recordcount=10000 -p operationcount=50000 -s -nodes 1 -threads 1 -p measurementtype=timeseries -p timeseries.granularity=2000 > transactions.dat
+java -Xmx7168M -Xms7168M -Djava.net.preferIPv4Stack=true -Dbind.address=`hostname` -cp $cp  com.yahoo.ycsb.Client -t -db com.yahoo.ycsb.db.InfinispanClient -P workloads/workloadg -p multiplereadcount=50 -p recordcount=1000 -p operationcount=2000 -s -nodes 4 -threads 1 -p measurementtype=timeseries -p timeseries.granularity=2000 > transactions.dat
 
 
