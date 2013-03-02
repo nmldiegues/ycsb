@@ -121,7 +121,7 @@ class StatusThread extends Thread
 			}
 			else
 			{
-				System.out.println(_label+" "+(interval/1000)+" sec: "+totalops+" operations; "+d.format(curthroughput)+" current ops/sec; "+Measurements.getMeasurements().getSummary());
+				System.out.println(_label+" "+(interval/1000)+" sec: "+totalops+" operations; "+d.format(curthroughput)+" current ops/sec; failed: " + totalfailed + " ops, " + d.format(curtfail)+ " ops/sec; "+Measurements.getMeasurements().getSummary());
 			}
 			}
 
@@ -292,6 +292,8 @@ class ClientThread extends Thread
 				}
 				
 				System.err.println("Total time: " + (System.currentTimeMillis() - st));
+				System.out.println("Total time: " + (System.currentTimeMillis() - st));
+
 				Thread.sleep(5000);
 
 
