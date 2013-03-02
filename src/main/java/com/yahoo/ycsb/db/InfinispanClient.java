@@ -64,6 +64,10 @@ public class InfinispanClient extends DB {
 		    tm=globalCache.getAdvancedCache().getTransactionManager();
 		    
 		    Client.NODE_INDEX = ((CustomHashing)globalCache.getAdvancedCache().getDistributionManager().getConsistentHash()).getMyId(infinispanManager.getTransport().getAddress());
+		    MagicKey.ADDRESS = infinispanManager.getTransport().getAddress();
+		    MagicKey.HASH = ((CustomHashing)globalCache.getAdvancedCache().getDistributionManager().getConsistentHash());
+		    MagicKey.OWNERS = globalCache.getAdvancedCache().getConfiguration().getNumOwners();
+		    
 		}
 	    }
 

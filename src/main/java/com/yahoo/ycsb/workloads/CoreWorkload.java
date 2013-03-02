@@ -640,7 +640,9 @@ public class CoreWorkload extends Workload
 
 		for (int k = 0; k < MUL_READ_COUNT; k++) {
 		    int newNum = boundKeyToNode(keynum + k);
-		    ret = db.read(new MagicKey("user"+newNum, newNum),fields,new HashMap<String,ByteIterator>());
+		    MagicKey mk = new MagicKey("user"+newNum, newNum);
+		    mk.locationCheck();
+		    ret = db.read(mk,fields,new HashMap<String,ByteIterator>());
 		    
 		    
 		    if(ret != DB.OK){
@@ -649,7 +651,9 @@ public class CoreWorkload extends Workload
 		}
 		
 		keyToWrite = boundKeyToNode(keyToWrite);
-		ret = db.update(new MagicKey("user"+keyToWrite, keyToWrite),values);
+		MagicKey mk = new MagicKey("user"+keyToWrite, keyToWrite);
+		mk.locationCheck();
+		ret = db.update(mk,values);
 		
 		if(ret != DB.OK){
 			return ret;

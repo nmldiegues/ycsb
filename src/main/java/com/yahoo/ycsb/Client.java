@@ -149,6 +149,9 @@ class ClientThread extends Thread
 {
 	static Random random=new Random();
 
+	static final Object lock = new Object();
+	static volatile boolean loaded = false;
+	
 	DB _db;
 	boolean _dotransactions;
 	boolean _doload;
@@ -219,10 +222,15 @@ class ClientThread extends Thread
 
 			
 			if(_doload){
-			    for (int i = 0; i < MagicKey.NUMBER; i++) {
-			        _workload.doInsert(_db,_workloadstate);
+			    synchronized (lock) {
+			        if (!loaded) {
+			            for (int i = 0; i < MagicKey.NUMBER; i++) {
+			                _workload.doInsert(_db,_workloadstate);
+			            }
+			            _db.endLoad();
+			            loaded = true;
+			        }
 			    }
-	             _db.endLoad();
 			} 
 			_db.waitLoad();
 				
