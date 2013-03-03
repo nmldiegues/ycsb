@@ -4,6 +4,8 @@ import java.io.Serializable;
 
 import org.infinispan.remoting.transport.Address;
 
+import com.yahoo.ycsb.Client;
+
 
 public class MagicKey implements Serializable {
 
@@ -18,10 +20,19 @@ public class MagicKey implements Serializable {
     public final int num;
     public final int node;
     
+    public static int local = 0;
+    public static int remote = 0;
+    
     public MagicKey(String key, int num) {
 	this.key = key;
 	this.num = num;
 	this.node = (int) Math.floor((double)((num * CLIENTS) / NUMBER));
+	
+	if (Client.NODE_INDEX == this.node) {
+	    local++;
+	} else {
+	    remote++;
+	}
     }
     
     public void locationCheck() {

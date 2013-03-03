@@ -50,17 +50,17 @@ public class TerminatorThread extends Thread {
       System.err.println("Could not wait until max specified time, TerminatorThread interrupted.");
       return;
     }
-    System.err.println("Maximum time elapsed. Requesting stop for the workload.");
+//    System.err.println("Maximum time elapsed. Requesting stop for the workload.");
     workload.requestStop();
-    System.err.println("Stop requested for workload. Now Joining!");
+//    System.err.println("Stop requested for workload. Now Joining!");
     for (Thread t : threads) {
       while (t.isAlive()) {
         try {
           t.join(waitTimeOutInMS);
-          if (t.isAlive()) {
-            System.err.println("Still waiting for thread " + t.getName() + " to complete. " +
-                "Workload status: " + workload.isStopRequested());
-          }
+//          if (t.isAlive()) {
+//            System.err.println("Still waiting for thread " + t.getName() + " to complete. " +
+//                "Workload status: " + workload.isStopRequested());
+//          }
         } catch (InterruptedException e) {
           // Do nothing. Don't know why I was interrupted.
         }

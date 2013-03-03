@@ -300,8 +300,8 @@ class ClientThread extends Thread
 				}
 				
 				long interval = (System.currentTimeMillis() - st);
-				System.err.println("Total time: " + interval + " throughput: " + (((_opsdone + 0.0) / interval) * 1000) + " failed: " + (((_opsfailed + 0.0) / interval) * 1000));
-				System.out.println("Total time: " + interval + " throughput: " + (((_opsdone + 0.0) / interval) * 1000) + " failed: " + (((_opsfailed + 0.0) / interval) * 1000));
+				System.err.println("Total time: " + interval + " throughput: " + (((_opsdone + 0.0) / interval) * 1000) + " failed: " + (((_opsfailed + 0.0) / interval) * 1000) + " MagicKey: " + MagicKey.local + " " + MagicKey.remote);
+				System.out.println("Total time: " + interval + " throughput: " + (((_opsdone + 0.0) / interval) * 1000) + " failed: " + (((_opsfailed + 0.0) / interval) * 1000) + " MagicKey: " + MagicKey.local + " " + MagicKey.remote);
 
 				Thread.sleep(5000);
 				_db.finish();
@@ -828,15 +828,15 @@ public class Client
 			System.exit(0);
 		}
 
-		try
-		{
-			exportMeasurements(props, opsDone, en - st);
-		} catch (IOException e)
-		{
-			System.err.println("Could not export measurements, error: " + e.getMessage());
-			e.printStackTrace();
-			System.exit(-1);
-		}
+//		try
+//		{
+//			exportMeasurements(props, opsDone, en - st);
+//		} catch (IOException e)
+//		{
+//			System.err.println("Could not export measurements, error: " + e.getMessage());
+//			e.printStackTrace();
+//			System.exit(-1);
+//		}
 
 		System.exit(0);
 	}
