@@ -334,6 +334,7 @@ public class InfinispanClient extends DB {
         while (true) {
         try  {
         tm.begin();
+        globalCache.markAsWriteTransaction();
         val = (Integer) globalCache.get("Sebastiano_key");
         globalCache.put("Sebastiano_key", val - 1);
         tm.commit();
