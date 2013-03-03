@@ -218,7 +218,7 @@ class ClientThread extends Thread
 			_db.init(_nodecount);
 			
 			System.out.println(_threadid+". Waiting: loading phase...");
-			Thread.sleep(30000);
+			Thread.sleep(5000);
 
 			
 			if(_doload){
@@ -235,7 +235,7 @@ class ClientThread extends Thread
 			_db.waitLoad();
 				
 				System.out.println(_threadid+". Starting execution phase...");
-			Thread.sleep(5000);
+			Thread.sleep(2000);
 			
 			
 			
