@@ -73,6 +73,7 @@ public class InfinispanClient extends DB {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } }
+		    Thread.sleep(5000);
 		    Client.NODE_INDEX = ((CustomHashing)globalCache.getAdvancedCache().getDistributionManager().getConsistentHash()).getMyId(infinispanManager.getTransport().getAddress());
 		    MagicKey.ADDRESS = infinispanManager.getTransport().getAddress();
 		    MagicKey.HASH = ((CustomHashing)globalCache.getAdvancedCache().getDistributionManager().getConsistentHash());
@@ -82,7 +83,10 @@ public class InfinispanClient extends DB {
 
 	} catch (IOException e) {
 	    throw new DBException(e);
-	}
+	} catch (InterruptedException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+    }
     }
 
     public void cleanup() {

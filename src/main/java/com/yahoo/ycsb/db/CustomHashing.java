@@ -1,6 +1,7 @@
 package com.yahoo.ycsb.db;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -65,6 +66,7 @@ public class CustomHashing extends DefaultConsistentHash {
     public int getMyId(Address addr) {
 	for (int i = 0; i < addresses.length; i++) {
 	    if (addresses[i].equals(addr)) {
+	        System.out.println("Node: " + i + " " + Arrays.toString(addresses));
 		return i;
 	    }
 	}
