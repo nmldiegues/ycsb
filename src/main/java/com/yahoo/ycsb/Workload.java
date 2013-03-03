@@ -81,7 +81,7 @@ public abstract class Workload
        * effects other than DB operations and mutations on threadstate. Mutations to threadstate do not need to be
        * synchronized, since each thread has its own threadstate instance.
        */
-      public abstract boolean doInsert(DB db, Object threadstate);
+      public abstract boolean doInsert(DB db, Object threadstate, int i);
       
       /**
        * Do one transaction operation. Because it will be called concurrently from multiple client threads, this 

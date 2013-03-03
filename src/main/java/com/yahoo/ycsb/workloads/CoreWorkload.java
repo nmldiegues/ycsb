@@ -419,14 +419,14 @@ public class CoreWorkload extends Workload
 	 * other, and it will be difficult to reach the target throughput. Ideally, this function would have no side
 	 * effects other than DB operations.
 	 */
-	public boolean doInsert(DB db, Object threadstate)
+	public boolean doInsert(DB db, Object threadstate, int k)
 	{
 		int keynum=keysequence.nextInt();
 //		if (!orderedinserts)
 //		{
 //			keynum=Utils.hash(keynum);
 //		}
-		String dbkey="user"+keynum;
+		String dbkey="user"+k;
 		HashMap<String,ByteIterator> values=new HashMap<String,ByteIterator>();
 
 		for (int i=0; i<fieldcount; i++)
@@ -435,7 +435,7 @@ public class CoreWorkload extends Workload
 			ByteIterator data= new RandomByteIterator(fieldlengthgenerator.nextInt());
 			values.put(fieldkey,data);
 		}
-		if (db.insert(table,dbkey,values) == 0)
+		if (db.insert(new MagicKey(dbkey, k),values) == 0)
 			return true;
 		else
 			return false;
