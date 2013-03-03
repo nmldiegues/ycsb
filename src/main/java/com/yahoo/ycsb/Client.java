@@ -210,6 +210,8 @@ class ClientThread extends Thread
 		return _opsdone;
 	}
 
+	public static volatile boolean startedTerm = false;
+	
 	public void run()
 	{
 	    CoreWorkload.MUL_READ_COUNT = this._mulreadcount;
@@ -237,6 +239,12 @@ class ClientThread extends Thread
 				System.out.println(_threadid+". Starting execution phase...");
 			Thread.sleep(2000);
 			
+			synchronized (lock) {
+			    if (!startedTerm) {
+			        startedTerm = true;
+			        Client.terminator.start();
+			    }
+			}
 			
 			
 				 
@@ -291,8 +299,9 @@ class ClientThread extends Thread
 
 				}
 				
-				System.err.println("Total time: " + (System.currentTimeMillis() - st));
-				System.out.println("Total time: " + (System.currentTimeMillis() - st));
+				long interval = (System.currentTimeMillis() - st);
+				System.err.println("Total time: " + interval + " throughput: " + (((_opsdone + 0.0) / interval) * 1000) + " failed: " + (((_opsfailed + 0.0) / interval) * 1000));
+				System.out.println("Total time: " + interval + " throughput: " + (((_opsdone + 0.0) / interval) * 1000) + " failed: " + (((_opsfailed + 0.0) / interval) * 1000));
 
 				Thread.sleep(5000);
 				_db.finish();
@@ -425,6 +434,7 @@ public class Client
 	}
 	
 	public static int NODE_INDEX;
+	public static volatile Thread terminator;
 	
 	@SuppressWarnings("unchecked")
 	public static void main(String[] args)
@@ -773,11 +783,8 @@ public class Client
 			t.start();
 		}
 		
-    Thread terminator = null;
-    
     if (maxExecutionTime > 0) {
       terminator = new TerminatorThread(maxExecutionTime, threads, workload);
-      terminator.start();
     }
     
     int opsDone = 0;

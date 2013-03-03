@@ -638,12 +638,13 @@ public class CoreWorkload extends Workload
 		
 		long st=System.currentTimeMillis();
 
+		String output = "Read [";
 		for (int k = 0; k < MUL_READ_COUNT; k++) {
 		    int newNum = boundKeyToNode(keynum + k);
 		    MagicKey mk = new MagicKey("user"+newNum, newNum);
 		    mk.locationCheck();
 		    ret = db.read(mk,fields,new HashMap<String,ByteIterator>());
-		    
+		    output += " " + mk.num + " " + mk.node + "     ";
 		    
 		    if(ret != DB.OK){
 			return ret;
@@ -652,6 +653,7 @@ public class CoreWorkload extends Workload
 		
 		keyToWrite = boundKeyToNode(keyToWrite);
 		MagicKey mk = new MagicKey("user"+keyToWrite, keyToWrite);
+		output += "]    wrote: " + mk.num + " " + mk.node + "     ";
 		mk.locationCheck();
 		ret = db.update(mk,values);
 		
