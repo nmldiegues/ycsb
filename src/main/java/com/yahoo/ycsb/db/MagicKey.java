@@ -61,7 +61,7 @@ public class MagicKey implements Serializable {
        MagicKey other = (MagicKey) o;
 
        if (this.hashCode() != other.hashCode()) return false;
-       return this.key == other.key && this.node == other.node && this.num == other.num;
+       return this.key.equals(other.key) && this.node == other.node && this.num == other.num;
     }
     
     public int hashCode() {
