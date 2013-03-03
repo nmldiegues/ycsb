@@ -218,6 +218,7 @@ public class InfinispanClient extends DB {
 		    cache.put(key, row);
 		} else {
 		    StringByteIterator.putAllAsStrings(row, values);
+		    cache.put(key, row);
 		}
 	    }
 
