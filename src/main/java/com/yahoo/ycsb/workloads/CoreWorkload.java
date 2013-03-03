@@ -544,11 +544,15 @@ public class CoreWorkload extends Workload
 	public static int MUL_READ_COUNT;
 	
 	public int boundKeyToNode(int keynum) {
+	    return boundKeyToNode(keynum, Client.NODE_INDEX);
+	}
+	
+	public int boundKeyToNode(int keynum, int node) {
 	    int parcel = MagicKey.NUMBER / MagicKey.CLIENTS;
-	    while (keynum < (parcel * Client.NODE_INDEX)) {
+	    while (keynum < (parcel * node)) {
 	        keynum += parcel;
 	    }
-	    while (keynum >= (parcel * (Client.NODE_INDEX + 1))) {
+	    while (keynum >= (parcel * (node + 1))) {
 	        keynum -= parcel;
 	    }
 	    return keynum;
@@ -636,25 +640,31 @@ public class CoreWorkload extends Workload
 
 		//do the transaction
 		
+		boolean remote = (keynum % 100) < 20;
+		int node = keyToWrite % MagicKey.CLIENTS;
+		if (!remote) {
+		    node = Client.NODE_INDEX;
+		}
+		
 		long st=System.currentTimeMillis();
 
-		String output = Client.NODE_INDEX + " Read [";
+//		String output = Client.NODE_INDEX + " Read [";
 		for (int k = 0; k < MUL_READ_COUNT; k++) {
-		    int newNum = boundKeyToNode(keynum + k);
+		    int newNum = boundKeyToNode(keynum + k, node);
 		    MagicKey mk = new MagicKey("user"+newNum, newNum);
-		    mk.locationCheck();
+//		    mk.locationCheck();
 		    ret = db.read(mk,fields,new HashMap<String,ByteIterator>());
-		    output += " " + mk.num + " " + mk.node + "     ";
+//		    output += " " + mk.num + " " + mk.node + "     ";
 		    
 		    if(ret != DB.OK){
 			return ret;
 		    }
 		}
 		
-		keyToWrite = boundKeyToNode(keyToWrite);
+		keyToWrite = boundKeyToNode(keyToWrite, node);
 		MagicKey mk = new MagicKey("user"+keyToWrite, keyToWrite);
-		output += "]    wrote: " + mk.num + " " + mk.node + "     ";
-		mk.locationCheck();
+//		output += "]    wrote: " + mk.num + " " + mk.node + "     ";
+//		mk.locationCheck();
 		ret = db.update(mk,values);
 //		System.out.println(output);
 		

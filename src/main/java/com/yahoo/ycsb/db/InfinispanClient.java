@@ -361,7 +361,8 @@ public class InfinispanClient extends DB {
 
             waitValue = null;
             }
-            try {  Thread.sleep(1); } catch (InterruptedException e) {}
+            try {  Thread.sleep(2000); } catch (InterruptedException e) {}
+            System.out.println("Current key: " + waitValue);
         }
         finished = true;
         }
