@@ -521,7 +521,7 @@ public class CoreWorkload extends Workload
 		
 		if (!orderedinserts)
 		{
-			keynum=Utils.hash(keynum);
+			keynum= Utils.hash(keynum) % MagicKey.NUMBER;
 		}
 		String keyname="user"+keynum;
 
@@ -597,11 +597,11 @@ public class CoreWorkload extends Workload
 //		    keyToWrite = forcedKeyWrite;
 //		}
 
-//		if (!orderedinserts)
-//		{
-//			keynum=Utils.hash(keynum);
-//			keyToWrite=Utils.hash(keyToWrite);
-//		}
+		if (!orderedinserts)
+		{
+			keynum= Utils.hash(keynum) % MagicKey.NUMBER;
+			keyToWrite=Utils.hash(keyToWrite) % MagicKey.NUMBER;
+		}
 
 		HashSet<String> fields=null;
 
