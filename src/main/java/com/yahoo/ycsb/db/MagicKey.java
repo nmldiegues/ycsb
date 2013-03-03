@@ -35,6 +35,12 @@ public class MagicKey implements Serializable {
 	}
     }
     
+    public MagicKey(String key, int num, int node) {
+        this.key = key;
+        this.node = node;
+        this.num = num;
+    }
+    
     public void locationCheck() {
         if (!HASH.isKeyLocalToAddress(ADDRESS, this, OWNERS)) {
             System.out.println("here!");

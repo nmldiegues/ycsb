@@ -440,6 +440,10 @@ public class CoreWorkload extends Workload
 		else
 			return false;
 	}
+	
+	public void insertLocals(DB db, int node) {
+	    db.insert(new MagicKey("node" + node, (-node) - 1, node), new HashMap<String, ByteIterator>());
+	}
 
 	/**
 	 * Do one transaction operation. Because it will be called concurrently from multiple client threads, this 
@@ -648,13 +652,13 @@ public class CoreWorkload extends Workload
 		
 		long st=System.currentTimeMillis();
 
-//		String output = Client.NODE_INDEX + " Read [";
+		String output = Client.NODE_INDEX + " Read [";
 		for (int k = 0; k < MUL_READ_COUNT; k++) {
 		    int newNum = boundKeyToNode(keynum + k, node);
 		    MagicKey mk = new MagicKey("user"+newNum, newNum);
 //		    mk.locationCheck();
 		    ret = db.read(mk,fields,new HashMap<String,ByteIterator>());
-//		    output += " " + mk.num + " " + mk.node + "     ";
+		    output += " " + mk.num + " " + mk.node + "     ";
 		    
 		    if(ret != DB.OK){
 			return ret;
@@ -662,9 +666,15 @@ public class CoreWorkload extends Workload
 		}
 		
 		keyToWrite = boundKeyToNode(keyToWrite, node);
-		MagicKey mk = new MagicKey("user"+keyToWrite, keyToWrite);
-//		output += "]    wrote: " + mk.num + " " + mk.node + "     ";
+		MagicKey mk;
+		if (!remote) {
+		    mk = new MagicKey("user"+keyToWrite, keyToWrite);
+		} else {
+		    mk = new MagicKey("node"+Client.NODE_INDEX, (-Client.NODE_INDEX) - 1, Client.NODE_INDEX);
+		}
+		output += "]    wrote: " + mk.num + " " + mk.node + "     ";
 //		mk.locationCheck();
+		values.put("trace", new StringByteIterator(output));
 		ret = db.update(mk,values);
 //		System.out.println(output);
 		

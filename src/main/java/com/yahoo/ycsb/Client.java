@@ -229,6 +229,10 @@ class ClientThread extends Thread
 			            for (int i = 0; i < MagicKey.NUMBER; i++) {
 			                _workload.doInsert(_db,_workloadstate, i);
 			            }
+			            for (int i = 0; i < _nodecount; i++) {
+			                _workload.insertLocals(_db, i);
+			            }
+			            
 			            MagicKey.remote = 0;
 			            MagicKey.local = 0;
 			            _db.endLoad();

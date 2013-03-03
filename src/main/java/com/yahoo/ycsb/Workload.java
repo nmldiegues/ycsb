@@ -82,6 +82,7 @@ public abstract class Workload
        * synchronized, since each thread has its own threadstate instance.
        */
       public abstract boolean doInsert(DB db, Object threadstate, int i);
+      public abstract void insertLocals(DB db, int node);
       
       /**
        * Do one transaction operation. Because it will be called concurrently from multiple client threads, this 
