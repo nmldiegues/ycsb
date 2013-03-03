@@ -65,18 +65,18 @@ public class InfinispanClient extends DB {
 
 		    tm=globalCache.getAdvancedCache().getTransactionManager();
 		    
-		    Client.NODE_INDEX = ((CustomHashing)globalCache.getAdvancedCache().getDistributionManager().getConsistentHash()).getMyId(infinispanManager.getTransport().getAddress());
-		    MagicKey.ADDRESS = infinispanManager.getTransport().getAddress();
-		    MagicKey.HASH = ((CustomHashing)globalCache.getAdvancedCache().getDistributionManager().getConsistentHash());
-		    MagicKey.OWNERS = globalCache.getAdvancedCache().getConfiguration().getNumOwners();
 		    
 		    Transport transport = infinispanManager.getTransport();
 		    while (transport.getMembers().size() < nodes) { 
 		        try {
-                Thread.sleep(5000);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } }
+		    Client.NODE_INDEX = ((CustomHashing)globalCache.getAdvancedCache().getDistributionManager().getConsistentHash()).getMyId(infinispanManager.getTransport().getAddress());
+		    MagicKey.ADDRESS = infinispanManager.getTransport().getAddress();
+		    MagicKey.HASH = ((CustomHashing)globalCache.getAdvancedCache().getDistributionManager().getConsistentHash());
+		    MagicKey.OWNERS = globalCache.getAdvancedCache().getConfiguration().getNumOwners();
 		}
 	    }
 
@@ -313,7 +313,6 @@ public class InfinispanClient extends DB {
 	}
 	catch (Exception e) {
 	    //throw new RuntimeException(e);
-
 	    return ERROR;
 	}
 

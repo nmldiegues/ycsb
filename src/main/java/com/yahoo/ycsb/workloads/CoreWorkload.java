@@ -638,7 +638,7 @@ public class CoreWorkload extends Workload
 		
 		long st=System.currentTimeMillis();
 
-		String output = "Read [";
+		String output = Client.NODE_INDEX + " Read [";
 		for (int k = 0; k < MUL_READ_COUNT; k++) {
 		    int newNum = boundKeyToNode(keynum + k);
 		    MagicKey mk = new MagicKey("user"+newNum, newNum);
@@ -656,6 +656,7 @@ public class CoreWorkload extends Workload
 		output += "]    wrote: " + mk.num + " " + mk.node + "     ";
 		mk.locationCheck();
 		ret = db.update(mk,values);
+//		System.out.println(output);
 		
 		if(ret != DB.OK){
 			return ret;
