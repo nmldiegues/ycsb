@@ -519,10 +519,10 @@ public class CoreWorkload extends Workload
 		}
 		while (keynum>transactioninsertkeysequence.lastInt());
 		
-//		if (!orderedinserts)
-//		{
-//			keynum=Utils.hash(keynum);
-//		}
+		if (!orderedinserts)
+		{
+			keynum=Utils.hash(keynum);
+		}
 		String keyname="user"+keynum;
 
 		HashSet<String> fields=null;
