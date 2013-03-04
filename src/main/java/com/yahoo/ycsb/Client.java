@@ -168,6 +168,8 @@ class ClientThread extends Thread
 	Object _workloadstate;
 	Properties _props;
 
+	public double total;
+	public double fail;
 
 	/**
 	 * Constructor.
@@ -309,8 +311,10 @@ class ClientThread extends Thread
 				}
 				
 				long interval = (System.currentTimeMillis() - st);
-				System.err.println("Total time: " + interval + " throughput: " + (((_opsdone + 0.0) / interval) * 1000) + " failed: " + (((_opsfailed + 0.0) / interval) * 1000) + " MagicKey: " + MagicKey.local + " " + MagicKey.remote);
-				System.out.println("Total time: " + interval + " throughput: " + (((_opsdone + 0.0) / interval) * 1000) + " failed: " + (((_opsfailed + 0.0) / interval) * 1000) + " MagicKey: " + MagicKey.local + " " + MagicKey.remote);
+				total = (((_opsdone + 0.0) / interval) * 1000);
+				fail = (((_opsfailed + 0.0) / interval) * 1000);
+				System.err.println("Total time: " + interval + " throughput: " + total + " failed: " + fail + " MagicKey: " + MagicKey.local + " " + MagicKey.remote);
+				System.out.println("Total time: " + interval + " throughput: " + total + " failed: " + fail + " MagicKey: " + MagicKey.local + " " + MagicKey.remote);
 
 				Thread.sleep(5000);
 				_db.finish();
@@ -796,14 +800,16 @@ public class Client
       terminator = new TerminatorThread(maxExecutionTime, threads, workload);
     }
     
-    int opsDone = 0;
+    double total = 0;
+    double fail = 0;
 
 		for (Thread t : threads)
 		{
 			try
 			{
 				t.join();
-				opsDone += ((ClientThread)t).getOpsDone();
+				total += ((ClientThread)t).total;
+				fail += ((ClientThread)t).fail;
 			}
 			catch (InterruptedException e)
 			{
@@ -811,6 +817,9 @@ public class Client
 		}
 
 		long en=System.currentTimeMillis();
+		DecimalFormat d = new DecimalFormat("#.##");
+		System.err.println("throughput: " + d.format(total) + " failed: " + d.format(fail));
+		System.out.println("throughput: " + d.format(total) + " failed: " + d.format(fail));
 		
 		if(dotransactions){
 		
