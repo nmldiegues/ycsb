@@ -214,6 +214,7 @@ class ClientThread extends Thread
 	
 	public void run()
 	{
+	    CoreWorkload.myThreadId.set(_threadid);
 	    CoreWorkload.MUL_READ_COUNT = this._mulreadcount;
 		try
 		{
@@ -230,7 +231,9 @@ class ClientThread extends Thread
 			                _workload.doInsert(_db,_workloadstate, i);
 			            }
 			            for (int i = 0; i < _nodecount; i++) {
-			                _workload.insertLocals(_db, i);
+			        	for (int j = 0; j < _threadcount; j++) {
+			        	    _workload.insertLocals(_db, i, j);
+			        	}
 			            }
 			            
 			            MagicKey.remote = 0;

@@ -441,8 +441,8 @@ public class CoreWorkload extends Workload
 			return false;
 	}
 	
-	public void insertLocals(DB db, int node) {
-	    db.insert(new MagicKey("node" + node, (-node) - 1, node), new HashMap<String, ByteIterator>());
+	public void insertLocals(DB db, int node, int thread) {
+	    db.insert(new MagicKey("node" + node + "-" + thread, ((((-node) - 1) * 100) - thread), node), new HashMap<String, ByteIterator>());
 	}
 
 	/**
@@ -574,6 +574,8 @@ public class CoreWorkload extends Workload
 	    };
 	};
 	
+	public static final ThreadLocal<Integer> myThreadId = new ThreadLocal<Integer>() {};
+	
 	public int doTransactionReadModifyWrite(DB db, int forcedKeyNum, int forcedKeyWrite)
 	{
 		
@@ -645,6 +647,7 @@ public class CoreWorkload extends Workload
 		//do the transaction
 		
 		boolean remote = (keynum % 100) < 20;
+		boolean localWrite = (keyToWrite % 100) < 50;
 		int node = keyToWrite % MagicKey.CLIENTS;
 		if (!remote) {
 		    node = Client.NODE_INDEX;
@@ -667,10 +670,10 @@ public class CoreWorkload extends Workload
 		
 		keyToWrite = boundKeyToNode(keyToWrite, node);
 		MagicKey mk;
-		if (!remote) {
+		if (!remote && localWrite) {
 		    mk = new MagicKey("user"+keyToWrite, keyToWrite);
 		} else {
-		    mk = new MagicKey("node"+Client.NODE_INDEX, (-Client.NODE_INDEX) - 1, Client.NODE_INDEX);
+		    mk = new MagicKey("node"+Client.NODE_INDEX + "-" + myThreadId.get(), (((-Client.NODE_INDEX) - 1) * 100) - myThreadId.get(), Client.NODE_INDEX);
 		}
 		output += "]    wrote: " + mk.num + " " + mk.node + "     ";
 //		mk.locationCheck();
