@@ -20,6 +20,8 @@ package com.yahoo.ycsb;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.yahoo.ycsb.workloads.BooleanHolder;
+
 /**
  * One experiment scenario. One object of this type will
  * be instantiated and shared among all client threads. This class
@@ -93,7 +95,7 @@ public abstract class Workload
        * 
        * @return false if the workload knows it is done for this thread. Client will terminate the thread. Return true otherwise. Return true for workloads that rely on operationcount. For workloads that read traces from a file, return true when there are more to do, false when you are done.
        */
-      public abstract int doTransaction(DB db, Object threadstate);
+      public abstract int doTransaction(DB db, Object threadstate, BooleanHolder wasRO);
       
       /**
        * Allows scheduling a request to stop the workload.

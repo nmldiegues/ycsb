@@ -26,6 +26,7 @@ import com.yahoo.ycsb.db.MagicKey;
 import com.yahoo.ycsb.measurements.Measurements;
 import com.yahoo.ycsb.measurements.exporter.MeasurementsExporter;
 import com.yahoo.ycsb.measurements.exporter.TextMeasurementsExporter;
+import com.yahoo.ycsb.workloads.BooleanHolder;
 import com.yahoo.ycsb.workloads.CoreWorkload;
 
 import org.apache.log4j.xml.DOMConfigurator;
@@ -65,7 +66,9 @@ class StatusThread extends Thread
 		long st=System.currentTimeMillis();
 
 		long lasten=st;
+		long lasttotal=0;
 		long lasttotalops=0;
+		long lasttotalro=0;
 		long lasttotalfailed=0;
 		
 		boolean alldone;
@@ -74,7 +77,9 @@ class StatusThread extends Thread
 		{
 			alldone=true;
 
+			int total=0;
 			int totalops=0;
+			int totalro=0;
 			int totalfailed=0;
 
 			//terminate this thread when all the worker threads are done
@@ -87,7 +92,9 @@ class StatusThread extends Thread
 
 				ClientThread ct=(ClientThread)t;
 				totalops+=ct.getOpsDone();
+				totalro+=ct.getOpsRO();
 				totalfailed+=ct.getOpsFailed();
+				total+=ct.getOpsDone() + ct.getOpsRO();
 			}
 
 			long en=System.currentTimeMillis();
@@ -95,35 +102,22 @@ class StatusThread extends Thread
 			long interval=en-st;
 			//double throughput=1000.0*((double)totalops)/((double)interval);
 
+			double totalthroughput=1000.0*(((double)(total-lasttotal))/((double)(en-lasten)));
 			double curthroughput=1000.0*(((double)(totalops-lasttotalops))/((double)(en-lasten)));
+			double rothroughput=1000.0*(((double)(totalro-lasttotalro))/((double)(en-lasten)));
 			double curtfail=1000.0*(((double)(totalfailed-lasttotalfailed))/((double)(en-lasten)));
 			
+			lasttotal=total;
+			lasttotalro=totalro;
 			lasttotalops=totalops;
 			lasttotalfailed=totalfailed;
 			lasten=en;
 			
 			DecimalFormat d = new DecimalFormat("#.##");
 			
-			if (totalops==0)
-			{
-				System.err.println(_label+" "+(interval/1000)+" sec: "+totalops+" operations; "+Measurements.getMeasurements().getSummary());
-			}
-			else
-			{
-				System.err.println(_label+" "+(interval/1000)+" sec: "+totalops+" operations; "+d.format(curthroughput)+" current ops/sec; failed: " + totalfailed + " ops, " + d.format(curtfail)+ " ops/sec; " + Measurements.getMeasurements().getSummary());
-			}
-
-			if (_standardstatus)
-			{
-			if (totalops==0)
-			{
-				System.out.println(_label+" "+(interval/1000)+" sec: "+totalops+" operations; "+Measurements.getMeasurements().getSummary());
-			}
-			else
-			{
-				System.out.println(_label+" "+(interval/1000)+" sec: "+totalops+" operations; "+d.format(curthroughput)+" current ops/sec; failed: " + totalfailed + " ops, " + d.format(curtfail)+ " ops/sec; "+Measurements.getMeasurements().getSummary());
-			}
-			}
+			System.err.println(_label+" "+(interval/1000)+" sec: "+totalops+" operations; "+
+			d.format(totalthroughput)+" total ops/sec; failed: " + totalfailed + " ops, " + d.format(curtfail)+ " ops/sec; " +
+			d.format(curthroughput) + " rw ops/sec, " + d.format(rothroughput) + " ops/sec");
 
 			try
 			{
@@ -162,6 +156,7 @@ class ClientThread extends Thread
 
 	int _opsfailed;
 	int _opsdone;
+	int _opsro;
 	int _threadid;
 	int _nodecount;
 	int _threadcount;
@@ -190,6 +185,7 @@ class ClientThread extends Thread
 		_workload=workload;
 		_opcount=opcount;
 		_opsdone=0;
+		_opsro=0;
 		_opsfailed=0;
 		_target=targetperthreadperms;
 		_threadid=threadid;
@@ -208,6 +204,10 @@ class ClientThread extends Thread
 	public int getOpsDone()
 	{
 		return _opsdone;
+	}
+	
+	public int getOpsRO(){
+	    return _opsro;
 	}
 
 	public static volatile boolean startedTerm = false;
@@ -297,17 +297,26 @@ class ClientThread extends Thread
 		{
 				long st=System.currentTimeMillis();
 
+				BooleanHolder wasRO = new BooleanHolder();
 				while (((_opcount == 0) || (_opsdone < _opcount)) && !_workload.isStopRequested())
 				{
 
-				    _opsfailed += _workload.doTransaction(_db,_workloadstate);
-				    _opsdone++;
+				    wasRO.wasRO = false;
+				    _opsfailed += _workload.doTransaction(_db,_workloadstate, wasRO);
+				    if (wasRO.wasRO) {
+				        _opsro++;
+				    } else {
+				        _opsdone++;
+				    }
 
 				}
 				
 				long interval = (System.currentTimeMillis() - st);
-				System.err.println("Total time: " + interval + " throughput: " + (((_opsdone + 0.0) / interval) * 1000) + " failed: " + (((_opsfailed + 0.0) / interval) * 1000) + " MagicKey: " + MagicKey.local + " " + MagicKey.remote);
-				System.out.println("Total time: " + interval + " throughput: " + (((_opsdone + 0.0) / interval) * 1000) + " failed: " + (((_opsfailed + 0.0) / interval) * 1000) + " MagicKey: " + MagicKey.local + " " + MagicKey.remote);
+				System.err.println("Total time: " + interval + " throughput: " + (((_opsdone+_opsro + 0.0) / interval) * 1000) +
+				        " rw: " + (((_opsdone + 0.0) / interval) * 1000) +
+				        " ro: " + (((_opsro + 0.0) / interval) * 1000) +
+				        " failed: " + (((_opsfailed + 0.0) / interval) * 1000) +
+				        " MagicKey: " + MagicKey.local + " " + MagicKey.remote);
 
 				Thread.sleep(5000);
 				_db.finish();

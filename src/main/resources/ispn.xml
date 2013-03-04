@@ -22,7 +22,7 @@
                 concurrencyLevel="32"
                 writeSkewCheck="false"
                 useLockStriping="false"
-                lockAcquisitionTimeout="100"/>
+                lockAcquisitionTimeout="500"/>
         <transaction
                 transactionManagerLookupClass="org.infinispan.transaction.lookup.GenericTransactionManagerLookup"
                 useEagerLocking="false"
@@ -35,7 +35,7 @@
                 eagerLockSingleNode="false"
                 use1PcForAutoCommitTransactions="false"
                 autoCommit="true"
-		ssiValidation="true"
+		ssiValidation="false"
                 />
         <jmxStatistics
                 enabled="true"/>
@@ -43,7 +43,7 @@
                 enabled="false"/>
         <clustering mode="d">
             <sync
-                    replTimeout="150000000" />
+                    replTimeout="15000" />
             <hash
                     numVirtualNodes="1"
                     numOwners="1"

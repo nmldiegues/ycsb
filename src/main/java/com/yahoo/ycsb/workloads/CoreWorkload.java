@@ -451,7 +451,7 @@ public class CoreWorkload extends Workload
 	 * other, and it will be difficult to reach the target throughput. Ideally, this function would have no side
 	 * effects other than DB operations.
 	 */
-	public int doTransaction(DB db, Object threadstate)
+	public int doTransaction(DB db, Object threadstate, BooleanHolder wasRO)
 	{
 		String op=operationchooser.nextString();
 		
@@ -469,6 +469,7 @@ public class CoreWorkload extends Workload
 		if (op.compareTo("READ")==0)
 		{
 			returnValue = doTransactionRead(db);
+			wasRO.wasRO = true;
 		}
 		else if (op.compareTo("UPDATE")==0)
 		{
@@ -488,10 +489,11 @@ public class CoreWorkload extends Workload
 		{
 		    int keyRead = -1;
 		    int keyWrite = -1;
+		    int doRemote = -1;
 		    int restarts = 0;
 		    do {
 			db.markWriteTx();
-			returnValue = doTransactionReadModifyWrite(db, keyRead, keyWrite);
+			returnValue = doTransactionReadModifyWrite(db, keyRead, keyWrite, doRemote);
 			committed = db.endTransaction((returnValue == DB.OK));	    
 			if ((returnValue == DB.OK) && (committed == DB.OK)) {
 			    return restarts;
@@ -500,6 +502,7 @@ public class CoreWorkload extends Workload
 			restarts++;
 			keyRead = lastReadKey.get();
 			keyWrite = lastWrittenKey.get();
+			doRemote = lastReadKey.get();
 			returnValue = db.beginTransaction();
 			if(returnValue != DB.OK){ throw new RuntimeException("should not have happened"); }
 		    } while (true);
@@ -574,7 +577,14 @@ public class CoreWorkload extends Workload
 	    };
 	};
 	
-	public int doTransactionReadModifyWrite(DB db, int forcedKeyNum, int forcedKeyWrite)
+	// -1 not computed, 0 false, 1 true
+	private static final ThreadLocal<Integer> lastRemote = new ThreadLocal<Integer>() {
+	    protected Integer initialValue() {
+	        return -1;
+	    }
+	};
+	
+	public int doTransactionReadModifyWrite(DB db, int forcedKeyNum, int forcedKeyWrite, int doRemote)
 	{
 		
 		int ret = DB.OK;
@@ -607,7 +617,6 @@ public class CoreWorkload extends Workload
 
 		if (!orderedinserts)
 		{
-			keynum= Utils.hash(keynum) % MagicKey.NUMBER;
 			keyToWrite=Utils.hash(keyToWrite) % MagicKey.NUMBER;
 		}
 
@@ -644,7 +653,17 @@ public class CoreWorkload extends Workload
 
 		//do the transaction
 		
-		boolean remote = (keynum % 100) < 20;
+		boolean remote;
+		if (doRemote == -1) {
+		    remote = (keynum % 100) < (1.0 / (MagicKey.CLIENTS + 0.0) * 100.0);
+		    if (remote) {
+		        lastRemote.set(1);
+		    } else {
+		        lastRemote.set(0);
+		    }
+		} else {
+		    remote = doRemote == 1;
+		}
 		int node = keyToWrite % MagicKey.CLIENTS;
 		if (!remote) {
 		    node = Client.NODE_INDEX;
@@ -652,31 +671,26 @@ public class CoreWorkload extends Workload
 		
 		long st=System.currentTimeMillis();
 
-		String output = Client.NODE_INDEX + " Read [";
-		for (int k = 0; k < MUL_READ_COUNT; k++) {
-		    int newNum = boundKeyToNode(keynum + k, node);
-		    MagicKey mk = new MagicKey("user"+newNum, newNum);
-//		    mk.locationCheck();
-		    ret = db.read(mk,fields,new HashMap<String,ByteIterator>());
-		    output += " " + mk.num + " " + mk.node + "     ";
-		    
-		    if(ret != DB.OK){
-			return ret;
-		    }
-		}
-		
-		keyToWrite = boundKeyToNode(keyToWrite, node);
-		MagicKey mk;
 		if (!remote) {
-		    mk = new MagicKey("user"+keyToWrite, keyToWrite);
+            for (int k = 0; k < MUL_READ_COUNT; k++) {
+                int newNum = boundKeyToNode(Utils.hash(keyToWrite + k) % MagicKey.NUMBER, node);
+                MagicKey mk = new MagicKey("user"+newNum, newNum);
+                ret = db.update(mk,values);
+                if(ret != DB.OK){
+                    return ret;
+                }
+            }
 		} else {
-		    mk = new MagicKey("node"+Client.NODE_INDEX, (-Client.NODE_INDEX) - 1, Client.NODE_INDEX);
+		    for (int k = 0; k < MUL_READ_COUNT; k++) {
+		        int newNum = boundKeyToNode(Utils.hash(keynum + k) % MagicKey.NUMBER, node);
+		        MagicKey mk = new MagicKey("user"+newNum, newNum);
+		        ret = db.read(mk,fields,new HashMap<String,ByteIterator>());
+		        if(ret != DB.OK){
+		            return ret;
+		        }
+		    }
+		    ret = db.update(new MagicKey("node"+Client.NODE_INDEX, (-Client.NODE_INDEX) - 1, Client.NODE_INDEX),values);
 		}
-		output += "]    wrote: " + mk.num + " " + mk.node + "     ";
-//		mk.locationCheck();
-		values.put("trace", new StringByteIterator(output));
-		ret = db.update(mk,values);
-//		System.out.println(output);
 		
 		if(ret != DB.OK){
 			return ret;
