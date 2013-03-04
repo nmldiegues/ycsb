@@ -441,8 +441,8 @@ public class CoreWorkload extends Workload
 			return false;
 	}
 	
-	public void insertLocals(DB db, int node) {
-	    db.insert(new MagicKey("node" + node, (-node) - 1, node), new HashMap<String, ByteIterator>());
+	public void insertLocals(DB db, int node, int thread) {
+	    db.insert(new MagicKey("node" + node + "-" + thread, ((((-node) - 1) * 100) - thread), node), new HashMap<String, ByteIterator>());
 	}
 
 	/**
@@ -583,6 +583,8 @@ public class CoreWorkload extends Workload
 	        return -1;
 	    }
 	};
+
+		public static final ThreadLocal<Integer> myThreadId = new ThreadLocal<Integer>() {};
 	
 	public int doTransactionReadModifyWrite(DB db, int forcedKeyNum, int forcedKeyWrite, int doRemote)
 	{
@@ -617,6 +619,7 @@ public class CoreWorkload extends Workload
 
 		if (!orderedinserts)
 		{
+			keynum= Utils.hash(keynum) % MagicKey.NUMBER;
 			keyToWrite=Utils.hash(keyToWrite) % MagicKey.NUMBER;
 		}
 
@@ -664,6 +667,7 @@ public class CoreWorkload extends Workload
 		} else {
 		    remote = doRemote == 1;
 		}
+		boolean localWrite = (keyToWrite % 100) < 50;
 		int node = keyToWrite % MagicKey.CLIENTS;
 		if (!remote) {
 		    node = Client.NODE_INDEX;
@@ -671,26 +675,31 @@ public class CoreWorkload extends Workload
 		
 		long st=System.currentTimeMillis();
 
-		if (!remote) {
-            for (int k = 0; k < MUL_READ_COUNT; k++) {
-                int newNum = boundKeyToNode(Utils.hash(keyToWrite + k) % MagicKey.NUMBER, node);
-                MagicKey mk = new MagicKey("user"+newNum, newNum);
-                ret = db.update(mk,values);
-                if(ret != DB.OK){
-                    return ret;
-                }
-            }
-		} else {
-		    for (int k = 0; k < MUL_READ_COUNT; k++) {
-		        int newNum = boundKeyToNode(Utils.hash(keynum + k) % MagicKey.NUMBER, node);
-		        MagicKey mk = new MagicKey("user"+newNum, newNum);
-		        ret = db.read(mk,fields,new HashMap<String,ByteIterator>());
-		        if(ret != DB.OK){
-		            return ret;
-		        }
+		String output = Client.NODE_INDEX + " Read [";
+		for (int k = 0; k < MUL_READ_COUNT; k++) {
+		    int newNum = boundKeyToNode(keynum + k, node);
+		    MagicKey mk = new MagicKey("user"+newNum, newNum);
+//		    mk.locationCheck();
+		    ret = db.read(mk,fields,new HashMap<String,ByteIterator>());
+		    output += " " + mk.num + " " + mk.node + "     ";
+		    
+		    if(ret != DB.OK){
+			return ret;
 		    }
-		    ret = db.update(new MagicKey("node"+Client.NODE_INDEX, (-Client.NODE_INDEX) - 1, Client.NODE_INDEX),values);
 		}
+		
+		keyToWrite = boundKeyToNode(keyToWrite, node);
+		MagicKey mk;
+		if (!remote && localWrite) {
+		    mk = new MagicKey("user"+keyToWrite, keyToWrite);
+		} else {
+		    mk = new MagicKey("node"+Client.NODE_INDEX + "-" + myThreadId.get(), (((-Client.NODE_INDEX) - 1) * 100) - myThreadId.get(), Client.NODE_INDEX);
+		}
+		output += "]    wrote: " + mk.num + " " + mk.node + "     ";
+//		mk.locationCheck();
+		values.put("trace", new StringByteIterator(output));
+		ret = db.update(mk,values);
+//		System.out.println(output);
 		
 		if(ret != DB.OK){
 			return ret;

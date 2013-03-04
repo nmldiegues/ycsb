@@ -163,6 +163,8 @@ class ClientThread extends Thread
 	Object _workloadstate;
 	Properties _props;
 
+	public double total;
+	public double fail;
 
 	/**
 	 * Constructor.
@@ -214,6 +216,7 @@ class ClientThread extends Thread
 	
 	public void run()
 	{
+	    CoreWorkload.myThreadId.set(_threadid);
 	    CoreWorkload.MUL_READ_COUNT = this._mulreadcount;
 		try
 		{
@@ -230,7 +233,9 @@ class ClientThread extends Thread
 			                _workload.doInsert(_db,_workloadstate, i);
 			            }
 			            for (int i = 0; i < _nodecount; i++) {
-			                _workload.insertLocals(_db, i);
+			        	for (int j = 0; j < _threadcount; j++) {
+			        	    _workload.insertLocals(_db, i, j);
+			        	}
 			            }
 			            
 			            MagicKey.remote = 0;
@@ -802,14 +807,16 @@ public class Client
       terminator = new TerminatorThread(maxExecutionTime, threads, workload);
     }
     
-    int opsDone = 0;
+    double total = 0;
+    double fail = 0;
 
 		for (Thread t : threads)
 		{
 			try
 			{
 				t.join();
-				opsDone += ((ClientThread)t).getOpsDone();
+				total += ((ClientThread)t).total;
+				fail += ((ClientThread)t).fail;
 			}
 			catch (InterruptedException e)
 			{
@@ -817,6 +824,9 @@ public class Client
 		}
 
 		long en=System.currentTimeMillis();
+		DecimalFormat d = new DecimalFormat("#.##");
+		System.err.println("throughput: " + d.format(total) + " failed: " + d.format(fail));
+		System.out.println("throughput: " + d.format(total) + " failed: " + d.format(fail));
 		
 		if(dotransactions){
 		
